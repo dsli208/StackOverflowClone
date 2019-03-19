@@ -51,6 +51,7 @@ nodemailer.createTestAccount((err, account) => {
     };
 
     global.transporter = nodemailer.createTransport(smtpConfig);
+    console.log("Created Test E-Mail Account");
 });
 
 // Adding session support
@@ -61,6 +62,7 @@ session = new NodeSession({secret: 'Q3UBzdH9GEfiRCTKbi5MTPyChpzXLsTD'});
 // this will define a session property to the request object
 app.use(function (req, res, next) {
     session.startSession(req, res, function() {
+        console.log("Start session function called");
         // ...
         next();
     });
@@ -69,7 +71,17 @@ app.use(function (req, res, next) {
 
 app.get('/', (req, res) => res.send('Hello World!'))
 
+app.post('/', (req, res) => res.send('App running'))
+
+app.post('/test', (req, res) => function(req, res) {
+  console.log("Test endpoint routing");
+  res.send("Test return value");
+})
+
+app.get('/adduser', (req, res) => res.send('GET for /adduser'))
+
 app.post('/adduser', (req, res) => function(req, res) {
+  console.log("Add User POST Request");
   // Missing key cases
   if (req.body.username == null) {
     res.json({"status": "error", "error": "no username found"})
@@ -83,9 +95,11 @@ app.post('/adduser', (req, res) => function(req, res) {
 
   // Every key is in and has a value so ...
   else {
+    console.log("All fields found");
     // Insert into USERS Database
     var username = req.body.username;
     var password = req.body.password;
+    console.log("Connecting to DB ...");
     MongoClient.connect(url, function(err, db) {
       if (err) throw err;
       var dbo = db.db("mydb");
@@ -98,6 +112,7 @@ app.post('/adduser', (req, res) => function(req, res) {
     });
 
     // Send key to the given email
+    console.log("Sending key");
     var key = "abracadbra";
     var email = req.body.email;
 
@@ -117,6 +132,8 @@ app.post('/adduser', (req, res) => function(req, res) {
         console.log('Email sent: ' + info.response);
       }
     });
+
+    res.json({"status": "OK"});
   }
 })
 
