@@ -1,8 +1,10 @@
+// REMEMBER TO MAKE SURE ALL PACKAGES - denoted by require('package_name') are installed when porting over to a remote instance
 const express = require('express')
 const app = express()
 const port = 80
 
 const nodemailer = require('nodemailer');
+var NodeSession = require('node-session');
 
 var MongoClient = require('mongodb').MongoClient;
 var url = "mongodb://localhost:27017/";
@@ -50,6 +52,20 @@ nodemailer.createTestAccount((err, account) => {
 
     global.transporter = nodemailer.createTransport(smtpConfig);
 });
+
+// Adding session support
+// init
+session = new NodeSession({secret: 'Q3UBzdH9GEfiRCTKbi5MTPyChpzXLsTD'});
+
+// start session for an http request - response
+// this will define a session property to the request object
+app.use(function (req, res, next) {
+    session.startSession(req, res, function() {
+        // ...
+        next();
+    });
+})
+
 
 app.get('/', (req, res) => res.send('Hello World!'))
 
@@ -102,6 +118,31 @@ app.post('/adduser', (req, res) => function(req, res) {
       }
     });
   }
+})
+
+app.post('/login', (req, res) => function(req, res) {
+  if (req.body.username == null) {
+    res.json({"status": "error", "error": "no username found"});
+  }
+  else if (req.body.password == null) {
+    res.json({"status": "error", "error": "no password found"});
+  }
+  else {
+    var username = req.body.username;
+    var password = req.body.password;
+
+    // Determine that this user is verified
+
+
+    // If verified, put them in the session
+    req.session.put('Username', username);
+  }
+})
+
+app.post('/logout', (req, res) => function(req, res) {
+  req.session.flush();
+
+  res.json({"status": "OK"});
 })
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
