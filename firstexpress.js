@@ -16,7 +16,7 @@ var url = "mongodb://localhost:27017/";
 MongoClient.connect(url, function(err, db) {
   if (err) throw err;
   // Create database
-  var dbo = db.db("db");
+  var dbo = db.db("stackoverflowclone");
   console.log("Database created!");
 
   // Create collections for Users, then Verified Users
@@ -104,10 +104,16 @@ app.post('/adduser', (req, res) => {
     var password = req.body.password;
     console.log(username + " " + password);
     console.log("Connecting to DB ...");
+
+    // Send key to the given email
+    console.log("Generating key");
+    var key = "abracadabra";
+    var email = req.body.email;
+    console.log(email);
     MongoClient.connect(url, function(err, db) {
       if (err) throw err;
-      var dbo = db.db("mydb");
-      var myobj = { username: username, password: password };
+      var dbo = db.db("stackoverflowclone");
+      var myobj = { username: username, email: email, password: password, key: key};
       dbo.collection("users").insertOne(myobj, function(err, res) {
         if (err) throw err;
         console.log("1 document inserted into USERS collection");
@@ -115,11 +121,7 @@ app.post('/adduser', (req, res) => {
       });
     });
 
-    // Send key to the given email
-    console.log("Generating key");
-    var key = "abracadbra";
-    var email = req.body.email;
-    console.log(email);
+
 
     //Step: 2 Setup message options
     var mailOptions = {
@@ -153,35 +155,80 @@ app.post('/verify', (req, res) => {
   }
   // All forms filled
   else {
+    var retdict = {"status":"OK"};
     var email = req.body.email;
     var key = req.body.key;
 
     var username = "", password = "";
 
     // Find the user in the database, then make sure email matches the Key
-    MongoClient.connect(url, function(err, db) {
-      if (err) throw err;
-      var dbo = db.db("mydb");
+    console.log("Connecting to DB...");
+    MongoClient.connect(url).then(function(db) {
+      var dbo = db.db("stackoverflowclone");
+      console.log("Connected to DB for findOne");
+      console.log(retdict);
 
       // Get user email and check it matches up with the key sent to that email
-      dbo.collection("users").findOne({"email": email}, function(err, result) {
-        if (err) res.json({"status": "error", "error": "Email not found"});
-        console.log(result.email);
-        if (result.key !== key) res.json({"status": "error", "error": "Email and key do not match up."});
-        else { username = result.username; password = result.password;}
+      dbo.collection("users").findOne({email: email}).then(function(result) {
+        console.log(result);
+        if (result == null) {
+          console.log("Null result");
+
+          retdict = {"status": "error", "error": "User not found with this key/email"};
+          console.log(retdict);
+        }
+        else if (result.key != key) {
+          //console.log(result.key);
+          console.log("Key does not match up");
+          //retdict['status'] = "error";
+          //retdict.push({"error": "Email and key do not match up."});
+          retdict = {"status": "error", "error": "Email and key do not match up."};
+          //return res.json();
+        }
+        else { console.log(result.email);username = result.username; password = result.password;}
+        //retdict = locretdict;
         db.close();
+      }).catch(function(err) {
+        console.log("Email not found error");
+        //retdict['status'] = "error";
+        //retdict.push({"error": "Email not found"});
+        retdict = {"status": "error", "error": "Email not found"};
       });
+      console.log("Findone DB connection closed");
+      console.log(retdict);
+
+      // Check to make sure we are stil at status:OK
+      console.log(retdict['status']);
+      if (retdict['status'] === 'error') {
+        console.log("Returning status error");
+        res.json(retdict);
+      }
+    }).catch(function(err) {
+      throw err;
+    })
+
+    console.log("Connecting to DB for insert");
+    MongoClient.connect(url).then(function(db) {
+      var dbo = db.db("stackoverflowclone");
+      console.log("Connected to DB for insert");
 
       // Since we have verified the user, add them to the verified users colelction so that they can log in
-      dbo.collection("verified_users").insertOne({"username":username, "password":password}) {
-        if (err) throw err;
+      dbo.collection("verified_users").insertOne({username:username, password:password}).then(function(err, result) {
         console.log("1 verified user added to VERIFIED USERS collection");
         db.close();
-      }
-    });
+      }).catch(function(err) {
+        console.log("Error adding person to verified_users");
+        retdict = {"status": "error", "error": "Error adding person to verified_users"};
+      })
+    //}
+
+    }).catch(function(err) {
+      throw err;
+    })
 
     // User from users database now verified and added to verified_users Database
-    res.json({"status": "OK"});
+    console.log("InsertOne DB Connection closed");
+    res.json(retdict);
   }
 })
 
@@ -196,12 +243,10 @@ app.post('/login', (req, res) => {
     var username = req.body.username;
     var password = req.body.password;
 
-
-
     // Determine that this user is verified
     MongoClient.connect(url, function(err, db) {
       if (err) throw err;
-      var dbo = db.db("mydb");
+      var dbo = db.db("stackoverflowclone");
       dbo.collection("verified_users").findOne({"username": username}, function(err, result) {
         if (err) res.json({"status": "error", "error": "User is not verified"});
         console.log(result.username);
@@ -213,6 +258,8 @@ app.post('/login', (req, res) => {
 
     // If verified, put them in the session
     req.session.put('Username', username);
+
+    res.json({"status":"OK"});
   }
 })
 
