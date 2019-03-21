@@ -3,6 +3,7 @@ const express = require('express')
 const app = express()
 const port = 80
 
+const randomstring = require('randomstring');
 const nodemailer = require('nodemailer');
 var NodeSession = require('node-session');
 const bodyParser = require('body-parser');
@@ -36,6 +37,11 @@ MongoClient.connect(url, function(err, db) {
     console.log("Verified Users Collection created!");
     //db.close();
   });
+
+  sodb.createCollection("questions", function(err, res) {
+    if (err) throw err;
+    console.log("Questions collection created");
+  })
 });
 
 // Setup email createServer
@@ -246,9 +252,38 @@ app.post('/login', (req, res) => {
 })
 
 app.post('/logout', (req, res) => {
-  req.session.flush();
+  req.session.flush(); // maybe use req.session.forget() instead?
 
   res.json({"status": "OK"});
+})
+
+app.post('/questions/add', (req, res) => {
+  // First, check that a user is logged in
+  if (!req.session.has('users')) {
+    res.json({"status": "error", "error": "No user logged in"});
+  }
+  else if (req.body.title == null) {
+    res.json({"status": "error", "error": "No title for the question"});
+  }
+  else if (req.body.body == null) {
+    res.json({"status": "error", "error": "The question needs a body"});
+  }
+  else if (req.body.tags == null) {
+    res.json({"status": "error", "error": "The question needs at least one tag"});
+  }
+  else {
+    var id = randomstring.generate();
+    // Make sure that there does NOT exist an entry in the Questions collection that matches, god forbid
+
+
+    sodb.collection("questions").insertOne({"title": req.body.title, "body": req.body.body, "tags": req.body.tags}, function(err, result) {
+      if (err) res.json({"status": "error", "error": "Error creating question at this time"});
+      else {
+        console.log("Question successfully inserted into Questions collection");
+        res.json({"status":"OK"});
+      }
+    })
+  }
 })
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
