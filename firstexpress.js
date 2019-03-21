@@ -216,24 +216,32 @@ app.post('/login', (req, res) => {
   else {
     var username = req.body.username;
     var password = req.body.password;
+    var retdict = {"status":"OK"};
 
     // Determine that this user is verified
-    MongoClient.connect(url, function(err, db) {
-      if (err) throw err;
-      var dbo = db.db("stackoverflowclone");
-      dbo.collection("verified_users").findOne({"username": username}, function(err, result) {
-        if (err) res.json({"status": "error", "error": "User is not verified"});
+    sodb.collection("verified_users").findOne({"username": username}, function(err, result) {
+      if (err) {
+        retdict = {"status": "error", "error": "User is not verified"};
+        res.json(retdict);
+      }
+      else if (result == null) {
+        retdict = {"status":"error", "error": "User not verified or does not exist"};
+        res.json(retdict);
+      }
+      else if (result.password !== password) {
+        retdict = {"status": "error", "error": "Username and password do not match up."};
+        res.json(retdict);
+      }
+      else {
         console.log(result.username);
-        if (result.password !== password) res.json({"status": "error", "error": "Username and password do not match up."});
-        db.close();
-      });
+        console.log("Entry found. Logging in.");
+
+        // If verified, put them in the session
+        req.session.put('Username', username);
+
+        res.json(retdict);
+      }
     });
-    console.log("Entry found. Logging in.");
-
-    // If verified, put them in the session
-    req.session.put('Username', username);
-
-    res.json({"status":"OK"});
   }
 })
 
