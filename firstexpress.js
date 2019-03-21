@@ -9,27 +9,32 @@ const bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.use(express.json());
 
+//var mongoose = require('mongoose');
 var MongoClient = require('mongodb').MongoClient;
 var url = "mongodb://localhost:27017/";
+var mongodb;
+var sodb;
 
 // Create DB and it's associated collections
+
 MongoClient.connect(url, function(err, db) {
   if (err) throw err;
   // Create database
-  var dbo = db.db("stackoverflowclone");
+  mongodb = db;
+  sodb = mongodb.db("stackoverflowclone");
   console.log("Database created!");
 
   // Create collections for Users, then Verified Users
-  dbo.createCollection("users", function(err, res) {
+  sodb.createCollection("users", function(err, res) {
     if (err) throw err;
     console.log("Users Collection created!");
-    db.close();
+    //db.close();
   });
 
-  dbo.createCollection("verified_users", function(err, res) {
+  sodb.createCollection("verified_users", function(err, res) {
     if (err) throw err;
     console.log("Verified Users Collection created!");
-    db.close();
+    //db.close();
   });
 });
 
@@ -110,18 +115,13 @@ app.post('/adduser', (req, res) => {
     var key = "abracadabra";
     var email = req.body.email;
     console.log(email);
-    MongoClient.connect(url, function(err, db) {
-      if (err) throw err;
-      var dbo = db.db("stackoverflowclone");
+
       var myobj = { username: username, email: email, password: password, key: key};
-      dbo.collection("users").insertOne(myobj, function(err, res) {
+      sodb.collection("users").insertOne(myobj, function(err, res) {
         if (err) throw err;
         console.log("1 document inserted into USERS collection");
-        db.close();
+        //db.close();
       });
-    });
-
-
 
     //Step: 2 Setup message options
     var mailOptions = {
@@ -163,74 +163,48 @@ app.post('/verify', (req, res) => {
 
     // Find the user in the database, then make sure email matches the Key
     console.log("Connecting to DB...");
-    MongoClient.connect(url).then(function(db) {
-      var dbo = db.db("stackoverflowclone");
-      console.log("Connected to DB for findOne");
-      console.log(retdict);
+    console.log(retdict);
 
-      // Get user email and check it matches up with the key sent to that email
-      dbo.collection("users").findOne({email: email}).then(function(result) {
-        console.log(result);
-        if (result == null) {
+    // Get user email and check it matches up with the key sent to that email
+    sodb.collection("users").findOne({email: email}).then(function(result) {
+      console.log(result);
+      if (result == null) {
           console.log("Null result");
 
           retdict = {"status": "error", "error": "User not found with this key/email"};
           console.log(retdict);
-        }
-        else if (result.key != key) {
+          throw err;
+      }
+      else if (result.key != key) {
           //console.log(result.key);
           console.log("Key does not match up");
-          //retdict['status'] = "error";
-          //retdict.push({"error": "Email and key do not match up."});
           retdict = {"status": "error", "error": "Email and key do not match up."};
-          //return res.json();
-        }
-        else { console.log(result.email);username = result.username; password = result.password;}
-        //retdict = locretdict;
-        db.close();
-      }).catch(function(err) {
-        console.log("Email not found error");
-        //retdict['status'] = "error";
-        //retdict.push({"error": "Email not found"});
-        retdict = {"status": "error", "error": "Email not found"};
-      });
-      console.log("Findone DB connection closed");
-      console.log(retdict);
-
-      // Check to make sure we are stil at status:OK
-      console.log(retdict['status']);
-      if (retdict['status'] === 'error') {
-        console.log("Returning status error");
-        res.json(retdict);
+          throw err;
       }
-    }).catch(function(err) {
-      throw err;
-    })
-
-    console.log("Connecting to DB for insert");
-    MongoClient.connect(url).then(function(db) {
-      var dbo = db.db("stackoverflowclone");
+      else { console.log(result.email);username = result.username; password = result.password;}
+    }).then(function() {
       console.log("Connected to DB for insert");
 
       // Since we have verified the user, add them to the verified users colelction so that they can log in
-      dbo.collection("verified_users").insertOne({username:username, password:password}).then(function(err, result) {
-        console.log("1 verified user added to VERIFIED USERS collection");
-        db.close();
-      }).catch(function(err) {
-        console.log("Error adding person to verified_users");
-        retdict = {"status": "error", "error": "Error adding person to verified_users"};
-      })
-    //}
+          sodb.collection("verified_users").insertOne({username:username, password:password}).then(function(err, result) {
+            console.log("1 verified user added to VERIFIED USERS collection");
+            res.json(retdict);
+          }).catch(function(err) {
+            console.log("Email not found error");
+            retdict = {"status": "error", "error": "Email not found"};
+            res.json(retdict);
+          })
+            }).catch(function(err) {
+              console.log("error");
+              retdict = {"status": "error", "error": "Error"};
+              res.json(retdict);
+            })
 
-    }).catch(function(err) {
-      throw err;
-    })
-
-    // User from users database now verified and added to verified_users Database
-    console.log("InsertOne DB Connection closed");
-    res.json(retdict);
-  }
+        }
+        // User from users database now verified and added to verified_users Database
+        console.log("InsertOne DB Connection closed");
 })
+
 
 app.post('/login', (req, res) => {
   if (req.body.username == null) {
