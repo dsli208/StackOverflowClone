@@ -15,6 +15,7 @@ var MongoClient = require('mongodb').MongoClient;
 var url = "mongodb://localhost:27017/";
 var mongodb;
 var sodb;
+var user;
 
 // Create DB and it's associated collections
 
@@ -243,7 +244,9 @@ app.post('/login', (req, res) => {
         console.log("Entry found. Logging in.");
 
         // If verified, put them in the session
-        req.session.put('Username', username);
+        req.session.user = {"username": username};
+        user = {"username": username};
+        //req.session.put('Username', username);
 
         res.json(retdict);
       }
@@ -252,17 +255,20 @@ app.post('/login', (req, res) => {
 })
 
 app.post('/logout', (req, res) => {
-  req.session.flush(); // maybe use req.session.forget() instead?
+  req.session.user = null; // maybe use req.session.forget() instead?
+  user = null;
 
   res.json({"status": "OK"});
 })
 
 app.post('/questions/add', (req, res) => {
   // First, check that a user is logged in
-  if (!req.session.has('users')) {
+  if (req.session.user == null && user == null) {
     res.json({"status": "error", "error": "No user logged in"});
   }
-  else if (req.body.title == null) {
+  console.log("Session details:");
+  console.log(req.session);
+  if (req.body.title == null) {
     res.json({"status": "error", "error": "No title for the question"});
   }
   else if (req.body.body == null) {
@@ -274,16 +280,26 @@ app.post('/questions/add', (req, res) => {
   else {
     var id = randomstring.generate();
     // Make sure that there does NOT exist an entry in the Questions collection that matches, god forbid
+    /*sodb.collection("questions").findOne({"id":id}).then(function(result) {
+      if (result != null) {
 
-
+      }
+    })*/
     sodb.collection("questions").insertOne({"title": req.body.title, "body": req.body.body, "tags": req.body.tags}, function(err, result) {
-      if (err) res.json({"status": "error", "error": "Error creating question at this time"});
+      if (err) {
+        res.json({"status": "error", "error": "Error creating question at this time"});
+      }
       else {
         console.log("Question successfully inserted into Questions collection");
-        res.json({"status":"OK"});
+        res.json({"status":"OK", "id": id});
       }
     })
   }
+})
+
+app.get('/questions/:id', (req, res) => {
+  var id = req.params.id;
+
 })
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
