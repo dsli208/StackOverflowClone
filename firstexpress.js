@@ -244,9 +244,11 @@ app.post('/login', (req, res) => {
         console.log("Entry found. Logging in.");
 
         // If verified, put them in the session
-        req.session.user = {"username": username};
-        user = {"username": username};
-        //req.session.put('Username', username);
+        //req.session.user = {"username": username};
+        //console.log(req.session.user);
+        //user = {"username": username};
+        req.session.put('username', username);
+        console.log(req.session['__attributes']);
 
         res.json(retdict);
       }
@@ -262,13 +264,13 @@ app.post('/logout', (req, res) => {
 })
 
 app.post('/questions/add', (req, res) => {
+  //console.log("Session details:");
+  console.log(req.session);
   // First, check that a user is logged in
-  if (req.session.user == null && user == null) {
+  if (req.session['__attributes']['username'] == null) {
     res.json({"status": "error", "error": "No user logged in"});
   }
-  console.log("Session details:");
-  console.log(req.session);
-  if (req.body.title == null) {
+  else if (req.body.title == null) {
     res.json({"status": "error", "error": "No title for the question"});
   }
   else if (req.body.body == null) {
