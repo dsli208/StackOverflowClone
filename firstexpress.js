@@ -350,7 +350,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
       else {
         console.log(result);
         console.log(result.answers);
-        
+
         var answerid = randomstring.generate();
         var answerobj = {"id": answerid, "user": req.session['__attributes']['username'], "body": req.body.body, "score": 0, "is_accepted": false, "timestamp": Date.now(), "media": null};
 
@@ -371,6 +371,26 @@ app.post('/questions/:id/answers/add', (req, res) => {
     })
   }
 
+})
+
+app.get('/questions/:id/answers', (req, res) => {
+  var id = req.params.id;
+
+  sodb.collection("answers").findOne({"id": id}, function(err, result) {
+    if (err) {
+      console.log("Error");
+      res.json({"status": "error", "error": "Error"});
+    }
+    else if (result == null) {
+      console.log("Nothing found");
+      res.json({"status": "error", "error": "No such question exists with this ID"});
+    }
+    else {
+      console.log(result.answers);
+
+      res.json({"status": "OK", "answers": result.answers});
+    }
+  })
 })
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
