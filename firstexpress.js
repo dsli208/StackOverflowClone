@@ -42,6 +42,11 @@ MongoClient.connect(url, function(err, db) {
     if (err) throw err;
     console.log("Questions collection created");
   })
+
+  sodb.createCollection("answers", function(err, res) {
+    if (err) throw err;
+    console.log("Answers collection created");
+  })
 });
 
 // Setup email createServer
@@ -292,6 +297,10 @@ app.post('/questions/add', (req, res) => {
       }
       else {
         console.log("Question successfully inserted into Questions collection");
+        sodb.collection("answers").insertOne({"id": id, "answers": []}, function(err2, result) {
+          if (err2) throw err2;
+          else console.log("Counterpart for this question in the answers collection also created.");
+        })
         res.json({"status":"OK", "id": id});
       }
     })
@@ -315,6 +324,52 @@ app.get('/questions/:id', (req, res) => {
       res.json({"status": "OK", "question": result});
     }
   })
+
+})
+
+app.post('/questions/:id/answers/add', (req, res) => {
+  var id = req.params.id;
+
+  // First, check that a user is logged in
+  if (req.session['__attributes']['username'] == null) {
+    res.json({"status": "error", "error": "No user logged in"});
+  }
+  else if (req.body.body == null) {
+    res.json({"status": "error", "error": "The answer needs a body"});
+  }
+  else {
+    sodb.collection("answers").findOne({"id": id}, function(err, result) {
+      if (err) {
+        console.log("Error");
+        res.json({"status": "error", "error": "Error"});
+      }
+      else if (result == null) {
+        console.log("Nonexistent question");
+        res.json({"status": "error", "error": "A question with this ID does not exist."});
+      }
+      else {
+        console.log(result);
+        console.log(result.answers);
+        
+        var answerid = randomstring.generate();
+        var answerobj = {"id": answerid, "user": req.session['__attributes']['username'], "body": req.body.body, "score": 0, "is_accepted": false, "timestamp": Date.now(), "media": null};
+
+        var answers_arr = result.answers;
+        answers_arr.push(answerobj);
+        var new_answer_arr = {$set: {answers: answers_arr}};
+
+        // Update DB Entry
+        sodb.collection("answers").updateOne({"id": id}, new_answer_arr, function(err2, res2) {
+          if (err2) throw err2;
+          else {
+            console.log("DB updated successfully");
+          }
+        })
+
+        res.json({"status": "OK", "id": answerid});
+      }
+    })
+  }
 
 })
 
