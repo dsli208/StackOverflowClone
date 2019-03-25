@@ -1,7 +1,7 @@
 // REMEMBER TO MAKE SURE ALL PACKAGES - denoted by require('package_name') are installed when porting over to a remote instance
 const express = require('express')
 const app = express()
-const port = 80
+const port = 3000
 
 const randomstring = require('randomstring');
 const nodemailer = require('nodemailer');
@@ -391,6 +391,28 @@ app.get('/questions/:id/answers', (req, res) => {
       res.json({"status": "OK", "answers": result.answers});
     }
   })
+})
+
+app.post('/questions/search', (req, res) => {
+  var timestamp = Date.now();
+  var limit = 25;
+  var accepted = false;
+
+  if (req != null && req.body != null) {
+    if (req.body.timestamp != null) {
+      timestamp = req.body.timestamp;
+    }
+
+    if (req.body.limit != null && req.body.limit >= 0 && req.body.limit <= 100) {
+      limit = req.body.limit
+    }
+
+    if (req.body.accepted != null) {
+      accepted = req.body.accepted;
+    }
+  }
+
+
 })
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
