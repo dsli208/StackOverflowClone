@@ -332,6 +332,7 @@ app.get('/questions/:id', (req, res) => {
         else {
           console.log("Question DB updated successfully");
           console.log(result);
+          console.log(res2);
           res.json({"status": "OK", "question": result});
         }
       })
