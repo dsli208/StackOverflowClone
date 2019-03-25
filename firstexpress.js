@@ -348,8 +348,8 @@ app.get('/questions/:id', (req, res) => {
       sodb.collection("views").findOne({"id": id}).then(function(res4) {
         var views = res4.views;
         if (views.indexOf(username) < 0) {
-          new_view_count += 1;
           views.push(username);
+          new_view_count = views.length;
 
           var new_views_dict = {$set: {views: views}};
 
