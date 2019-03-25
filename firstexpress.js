@@ -322,6 +322,18 @@ app.get('/questions/:id', (req, res) => {
     }
     else {
       console.log("Question found");
+
+      // Update view Count
+      var new_view_count = result.view_count + 1;
+      var new_view_count_dict = {$set: {view_count: new_view_count}};
+
+      sodb.collection("questions").updateOne({"id": id}, new_view_count_dict, function(err2, res2) {
+        if (err2) throw err2;
+        else {
+          console.log("Question DB updated successfully");
+        }
+      })
+
       res.json({"status": "OK", "question": result});
     }
   })
