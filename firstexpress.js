@@ -332,8 +332,14 @@ app.get('/questions/:id', (req, res) => {
         else {
           console.log("Question DB updated successfully");
           console.log(result);
-          console.log(res2);
-          res.json({"status": "OK", "question": result});
+          sodb.collection("questions").findOne({"id": id}, function(err3, res3) {
+            if (err3) throw err3;
+            else {
+              console.log(res3);
+              res.json({"status": "OK", "question": res3});
+            }
+          })
+
         }
       })
 
