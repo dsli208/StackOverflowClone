@@ -10,6 +10,8 @@ const bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.use(express.json());
 
+const ip = require('ip');
+
 //var mongoose = require('mongoose');
 var MongoClient = require('mongodb').MongoClient;
 var url = "mongodb://localhost:27017/";
@@ -46,6 +48,11 @@ MongoClient.connect(url, function(err, db) {
   sodb.createCollection("answers", function(err, res) {
     if (err) throw err;
     console.log("Answers collection created");
+  })
+
+  sodb.createCollection("views", function(err, res) {
+    if (err) throw err;
+    console.log("Views collection created");
   })
 });
 
@@ -298,10 +305,14 @@ app.post('/questions/add', (req, res) => {
       }
       else {
         console.log("Question successfully inserted into Questions collection");
-        sodb.collection("answers").insertOne({"id": id, "answers": []}, function(err2, result) {
+        sodb.collection("answers").insertOne({"id": id, "answers": []}, function(err2, res2) {
           if (err2) throw err2;
           else console.log("Counterpart for this question in the answers collection also created.");
         })
+        sodb.collection("views").insertOne({"id": id, "views": []}), function(err3, res3) {
+          if (err3) throw err3;
+          else console.log("Views component for this question also created.");
+        }
         res.json({"status":"OK", "id": id});
       }
     })
@@ -322,11 +333,33 @@ app.get('/questions/:id', (req, res) => {
     }
     else {
       console.log("Question found");
+      var new_view_count = result.view_count;
 
-      // Update view Count
-      var new_view_count = result.view_count + 1;
+      // Update view Count - if the user is NEW
+      // First determine if user is new
+      var username;
+
+      if (req.session['__attributes']['username'] == null) {
+          username = ip.address();
+      }
+      else {
+        username = req.session['__attributes']['username'];
+      }
+      sodb.collection("views").findOne({"id": id}).then(function(res4) {
+        var views = res4.views;
+        if (views.indexOf(username) < 0) {
+          new_view_count += 1;
+          views.push(username);
+
+          var new_views_dict = {$set: {views: views}};
+
+          sodb.collection("views").updateOne({"id": id}, new_views_dict, function(e5, r5) {
+            if (e5) throw e5;
+            else console.log("New user, view count incremented");
+          })
+        }
+      }).then(function() {
       var new_view_count_dict = {$set: {view_count: new_view_count}};
-
       sodb.collection("questions").updateOne({"id": id}, new_view_count_dict, function(err2, res2) {
         if (err2) throw err2;
         else {
@@ -341,6 +374,12 @@ app.get('/questions/:id', (req, res) => {
           })
 
         }
+      })}).catch(function(e5) {
+        res.json({"status": "error", "error": "Error e5"});
+      }).catch(function(err2) {
+        res.json({"status": "error", "error": "Error err2"});
+      }).catch(function(err3) {
+        res.json({"status": "error", "error": "Error err3"});
       })
 
       //res.json({"status": "OK", "question": result});
