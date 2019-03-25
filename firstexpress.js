@@ -291,7 +291,7 @@ app.post('/questions/add', (req, res) => {
 
       }
     })*/
-    var obj = {"id": id, "user": {"username": req.session['__attributes']['username'], "reputation": 0}, "title": req.body.title, "body": req.body.body, "score": 0, "view_count": 1, "answer_count": 0, "timestamp": Date.now(), "media": null, "tags": req.body.tags, "accepted_answer_id": null};
+    var obj = {"id": id, "user": {"username": req.session['__attributes']['username'], "reputation": 0}, "title": req.body.title, "body": req.body.body, "score": 0, "view_count": 0, "answer_count": 0, "timestamp": Date.now(), "media": null, "tags": req.body.tags, "accepted_answer_id": null};
     sodb.collection("questions").insertOne(obj , function(err, result) {
       if (err) {
         res.json({"status": "error", "error": "Error creating question at this time"});
