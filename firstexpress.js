@@ -1,7 +1,7 @@
 // REMEMBER TO MAKE SURE ALL PACKAGES - denoted by require('package_name') are installed when porting over to a remote instance
 const express = require('express')
 const app = express()
-const port = 3000
+const port = 3000;
 
 const randomstring = require('randomstring');
 const nodemailer = require('nodemailer');
@@ -60,12 +60,13 @@ nodemailer.createTestAccount((err, account) => {
 
     //Step: 1 Create transporter
     let smtpConfig = {
-        host: 'smtp.ethereal.email',
+        host: 'smtp.gmail.com',
+        service: 'gmail',
         port: 587,
         secure: false, // true for 465, false for other ports. For TLS use port 465
         auth: {
-            user: account.user, // generated ethereal user
-            pass: account.pass // generated ethereal password
+            user: "friedcomputerz208@gmail.com", // generated ethereal user
+            pass: "qasmltrjzjsmfxui" // generated ethereal password
         }
     };
 
@@ -136,10 +137,10 @@ app.post('/adduser', (req, res) => {
 
     //Step: 2 Setup message options
     var mailOptions = {
-      from: 'someguy@cato.com',
+      from: 'friedcomputerz208@gmail.com',
       to: email,
-      subject: 'Registration',
-      text: 'Key is ' + key
+      subject: 'Verification Key',
+      text: 'validation key: <' + key + '>'
     };
 
     //Step: 3 Send mail using created transport
