@@ -331,10 +331,11 @@ app.get('/questions/:id', (req, res) => {
         if (err2) throw err2;
         else {
           console.log("Question DB updated successfully");
+          res.json({"status": "OK", "question": result});
         }
       })
 
-      res.json({"status": "OK", "question": result});
+      //res.json({"status": "OK", "question": result});
     }
   })
 
