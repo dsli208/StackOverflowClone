@@ -463,6 +463,7 @@ app.post('/search', (req, res) => {
     if (req.body.timestamp != null) {
       console.log("Setting timestamp");
       timestamp = req.body.timestamp;
+      console.log(timestamp);
     }
 
     if (req.body.limit != null && req.body.limit >= 0 && req.body.limit <= 100) {
