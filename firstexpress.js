@@ -473,6 +473,20 @@ app.post('/questions/search', (req, res) => {
     }
   }
 
+  var sorter = {"timestamp": -1};
+  sodb.collection("questions").find().sort(sorter).limit(limit).toArray(function(err, result) {
+    if (err) throw err;
+    else {
+      if (result != null) {
+        console.log(result);
+
+        res.json({"status": "OK", "questions": result});
+      }
+      else {
+        res.json({"status": "error", "error": "Error"});
+      }
+    }
+  })
 
 })
 
