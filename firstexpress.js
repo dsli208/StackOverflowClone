@@ -454,7 +454,7 @@ app.get('/questions/:id/answers', (req, res) => {
   })
 })
 
-app.post('/questions/search', (req, res) => {
+app.post('/search', (req, res) => {
   var timestamp = Date.now();
   var limit = 25;
   var accepted = false;
