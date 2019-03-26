@@ -298,7 +298,7 @@ app.post('/questions/add', (req, res) => {
 
       }
     })*/
-    var obj = {"id": id, "user": {"username": req.session['__attributes']['username'], "reputation": 0}, "title": req.body.title, "body": req.body.body, "score": 0, "view_count": 1, "answer_count": 0, "timestamp": Date.now(), "media": null, "tags": req.body.tags, "accepted_answer_id": null};
+    var obj = {"id": id, "user": {"username": req.session['__attributes']['username'], "reputation": 0}, "title": req.body.title, "body": req.body.body, "score": 0, "view_count": 1, "answer_count": 0, "timestamp": Date.now() / 1000, "media": null, "tags": req.body.tags, "accepted_answer_id": null};
     sodb.collection("questions").insertOne(obj , function(err, result) {
       if (err) {
         res.json({"status": "error", "error": "Error creating question at this time"});
@@ -413,7 +413,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
         console.log(result.answers);
 
         var answerid = randomstring.generate();
-        var answerobj = {"id": answerid, "user": req.session['__attributes']['username'], "body": req.body.body, "score": 0, "is_accepted": false, "timestamp": Date.now(), "media": null};
+        var answerobj = {"id": answerid, "user": req.session['__attributes']['username'], "body": req.body.body, "score": 0, "is_accepted": false, "timestamp": Date.now() / 1000, "media": null};
 
         var answers_arr = result.answers;
         answers_arr.push(answerobj);
