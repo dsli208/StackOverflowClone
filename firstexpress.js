@@ -461,21 +461,27 @@ app.post('/questions/search', (req, res) => {
 
   if (req != null && req.body != null) {
     if (req.body.timestamp != null) {
+      console.log("Setting timestamp");
       timestamp = req.body.timestamp;
     }
 
     if (req.body.limit != null && req.body.limit >= 0 && req.body.limit <= 100) {
+      console.log("Setting limit");
       limit = req.body.limit
     }
 
     if (req.body.accepted != null) {
+      console.log("Setting accepted");
       accepted = req.body.accepted;
     }
   }
 
   var sorter = {"timestamp": -1};
   sodb.collection("questions").find().sort(sorter).limit(limit).toArray(function(err, result) {
-    if (err) throw err;
+    if (err) {
+       console.log("Throw error");
+       throw err;
+     }
     else {
       if (result != null) {
         console.log("Search results:");
@@ -484,6 +490,7 @@ app.post('/questions/search', (req, res) => {
         res.json({"status": "OK", "questions": result});
       }
       else {
+        console.log("Error");
         res.json({"status": "error", "error": "Error"});
       }
     }
