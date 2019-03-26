@@ -476,8 +476,10 @@ app.post('/search', (req, res) => {
     }
   }
 
+  var query = {"timestamp": {$lte: timestamp}};
   var sorter = {"timestamp": -1};
-  sodb.collection("questions").find().sort(sorter).limit(limit).toArray(function(err, result) {
+
+  sodb.collection("questions").find(query).sort(sorter).limit(limit).toArray(function(err, result) {
     if (err) {
        console.log("Throw error");
        throw err;
