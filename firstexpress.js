@@ -95,6 +95,7 @@ app.use(function (req, res, next) {
     });
 })
 
+// Milestone 1
 
 app.get('/', (req, res) => res.send('Hello World!'))
 
@@ -206,7 +207,7 @@ app.post('/verify', (req, res) => {
       console.log("Connected to DB for insert");
 
       // Since we have verified the user, add them to the verified users colelction so that they can log in
-          sodb.collection("verified_users").insertOne({username:username, password:password}).then(function(err, result) {
+          sodb.collection("verified_users").insertOne({username:username, password:password, email: result.email, reputation: 0}).then(function(err, result) {
             console.log("1 verified user added to VERIFIED USERS collection");
             res.json(retdict);
           }).catch(function(err) {
@@ -498,6 +499,53 @@ app.post('/search', (req, res) => {
       }
     }
   })
+
+})
+
+// Milestone 2 new functions
+
+app.delete('/questions/:id', (req, res) => {
+  if (req.session['__attributes']['username'] == null) {
+    res.json({"status": "error", "error": "No user logged in"});
+  }
+
+  var id = req.params.id;
+
+  sodb.collection("questions").findOne({id: id}, function(err, result) {
+    if (err) throw err;
+    if (result.user['username'] != req.session['__attributes']['username']) {
+      res.json({"status": "error", "error": "Only the author can delete their question"});
+    }
+    else {
+      sodb.collection("questions").deleteOne({id: id}, function(err, result) {
+        if (err) throw err;
+        console.log("1 document deleted");
+      });
+    }
+  });
+})
+
+app.get('/user/:username', (req, res) => {
+  var username = req.params.username;
+
+  sodb.collection("verified_users").findOne({username: username}, function(err, result) {
+    if (err) throw err;
+    console.log("user found");
+
+    // Obtain the user details
+    var email = result.email;
+    var rep = result.reputation;
+
+    // Return the user details
+    res.json({"status": "OK", "user": {"email": email, "reputation": rep}});
+  })
+})
+
+app.get('/user/:username/questions', (req, res) => {
+
+})
+
+app.get('/user/:username/answers', (req, res) => {
 
 })
 
