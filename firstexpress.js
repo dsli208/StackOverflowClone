@@ -556,13 +556,23 @@ app.get('/user/:username', (req, res) => {
 
 app.get('/user/:username/questions', (req, res) => {
   var username = req.params.username;
+  console.log("Username is " + username);
   // Find all questions where user['username'] is the given username
 
-  sodb.collection("questions").find({user: {"username": username}}).toArray(function (err, result) {
+  sodb.collection("questions").find({"user.username": username}).toArray(function (err, result) {
     if (err) throw err;
 
-    // return the array of Question ID's
+    // return the array of Question ID's - iterate through result
+    var q_id_arr = [];
 
+    result.forEach(e => {
+      q_id_arr.push(e.id);
+    })
+
+    console.log(result);
+    console.log(q_id_arr);
+
+    res.json({"status": "OK", "questions": q_id_arr});
   })
 })
 
@@ -570,7 +580,27 @@ app.get('/user/:username/answers', (req, res) => {
   var username = req.params.username;
   // Find all answers where user['username'] is the given username
 
+  sodb.collection("answers").find().toArray(function (err, result) {
+    if (err) throw err;
 
+    // return the array of Question ID's
+    var a_id_arr = [];
+
+    console.log(result);
+
+    result.forEach (e => {
+      var ans = e.answers;
+
+      console.log(ans);
+      ans.forEach(f => {
+        if (f.user == "dsli") {
+          a_id_arr.push(f.id);
+        }
+      })
+    })
+
+    res.json({"status": "OK", "answers": a_id_arr});
+  })
 })
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
