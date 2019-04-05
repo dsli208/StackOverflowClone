@@ -207,7 +207,7 @@ app.post('/verify', (req, res) => {
       console.log("Connected to DB for insert");
 
       // Since we have verified the user, add them to the verified users colelction so that they can log in
-          sodb.collection("verified_users").insertOne({username:username, password:password, email: result.email, reputation: 0}).then(function(err, result) {
+          sodb.collection("verified_users").insertOne({username:username, password:password, email: email, reputation: 0}).then(function(err, result) {
             console.log("1 verified user added to VERIFIED USERS collection");
             res.json(retdict);
           }).catch(function(err) {
@@ -508,44 +508,68 @@ app.delete('/questions/:id', (req, res) => {
   if (req.session['__attributes']['username'] == null) {
     res.json({"status": "error", "error": "No user logged in"});
   }
+  else {
+    var id = req.params.id;
 
-  var id = req.params.id;
+    sodb.collection("questions").findOne({id: id}, function(err, result) {
+      if (err) throw err;
+      if (result.user['username'] != req.session['__attributes']['username']) {
+        res.json({"status": "error", "error": "Only the author can delete their question"});
+      }
+      else {
+        sodb.collection("questions").deleteOne({id: id}, function(err, result) {
+          if (err) throw err;
+          console.log("1 document deleted");
 
-  sodb.collection("questions").findOne({id: id}, function(err, result) {
-    if (err) throw err;
-    if (result.user['username'] != req.session['__attributes']['username']) {
-      res.json({"status": "error", "error": "Only the author can delete their question"});
-    }
-    else {
-      sodb.collection("questions").deleteOne({id: id}, function(err, result) {
-        if (err) throw err;
-        console.log("1 document deleted");
-      });
-    }
-  });
+          res.json({"status": "OK"});
+        });
+      }
+    });
+  }
 })
 
 app.get('/user/:username', (req, res) => {
+  if (req.params.username == null) {
+    res.json({"status": "error", "error": "No username given"});
+  }
   var username = req.params.username;
 
   sodb.collection("verified_users").findOne({username: username}, function(err, result) {
-    if (err) throw err;
-    console.log("user found");
+    if (err) {
+      res.json({"status": "error", "error": "total error"});
+    }
+    else if (result == null) {
+      res.json({"status": "error", "error": "User does not exist"});
+    }
+    else {
+      console.log("user found");
 
-    // Obtain the user details
-    var email = result.email;
-    var rep = result.reputation;
+      // Obtain the user details
+      var email = result.email;
+      var rep = result.reputation;
 
-    // Return the user details
-    res.json({"status": "OK", "user": {"email": email, "reputation": rep}});
+      // Return the user details
+      res.json({"status": "OK", "user": {"email": email, "reputation": rep}});
+    }
   })
 })
 
 app.get('/user/:username/questions', (req, res) => {
+  var username = req.params.username;
+  // Find all questions where user['username'] is the given username
 
+  sodb.collection("questions").find({user: {"username": username}}).toArray(function (err, result) {
+    if (err) throw err;
+
+    // return the array of Question ID's
+
+  })
 })
 
 app.get('/user/:username/answers', (req, res) => {
+  var username = req.params.username;
+  // Find all answers where user['username'] is the given username
+
 
 })
 
