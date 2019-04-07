@@ -459,8 +459,11 @@ app.post('/search', (req, res) => {
   var timestamp = Date.now() / 1000;
   var limit = 25;
   var accepted = false;
-
+  var search_q = null;
   if (req != null && req.body != null) {
+    if (req.body.q != null) {
+      search_q = req.body.q;
+    }
     if (req.body.timestamp != null) {
       console.log("Setting timestamp");
       timestamp = req.body.timestamp;
@@ -469,37 +472,43 @@ app.post('/search', (req, res) => {
 
     if (req.body.limit != null && req.body.limit >= 0 && req.body.limit <= 100) {
       console.log("Setting limit");
-      limit = req.body.limit
+      limit = req.body.limit;
     }
 
     if (req.body.accepted != null) {
       console.log("Setting accepted");
       accepted = req.body.accepted;
     }
-  }
 
-  var query = {"timestamp": {$lte: timestamp}};
-  var sorter = {"timestamp": -1};
 
-  sodb.collection("questions").find(query).sort(sorter).limit(limit).toArray(function(err, result) {
-    if (err) {
-       console.log("Throw error");
-       throw err;
-     }
-    else {
-      if (result != null) {
-        console.log("Search results:");
-        console.log(result);
+    var query = {"timestamp": {$lte: timestamp}};
+    if (search_q != null) {
+      query = {$and:[{"timestamp": {$lte: timestamp}}, {$or: [{"title": {"$regex": ".*" + search_q + ".*"}}, {"body": {"$regex": ".*" + search_q + ".*"}}]}]}; // Add a search query here
+    }
+    var sorter = {"timestamp": -1};
 
-        res.json({"status": "OK", "questions": result});
+    sodb.collection("questions").find(query).sort(sorter).limit(limit).toArray(function(err, result) {
+      if (err) {
+        console.log("Throw error");
+        throw err;
       }
       else {
-        console.log("Error");
-        res.json({"status": "error", "error": "Error"});
-      }
-    }
-  })
+        if (result != null) {
+          console.log("Search results:");
+          console.log(result);
 
+          res.json({"status": "OK", "questions": result});
+        }
+        else {
+          console.log("Error");
+          res.json({"status": "error", "error": "Error"});
+        }
+      }
+    })
+  }
+  else {
+    res.json({"status": "error", "error": "Error: No request body"});
+  }
 })
 
 // Milestone 2 new functions
