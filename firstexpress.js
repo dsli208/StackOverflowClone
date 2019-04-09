@@ -403,7 +403,8 @@ app.post('/questions/:id/answers/add', (req, res) => {
     res.json({"status": "error", "error": "The answer needs a body"});
   }
   else {
-    console.log(req.body.body);
+    console.log(id);
+    //console.log(req.body.body);
     sodb.collection("answers").findOne({"id": id}, function(err, result) {
       if (err) {
         console.log("Error");
