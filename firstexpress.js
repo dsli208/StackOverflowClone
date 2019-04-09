@@ -322,7 +322,8 @@ app.post('/questions/add', (req, res) => {
 
 app.get('/questions/:id', (req, res) => {
   var id = req.params.id;
-
+  console.log("ID: " + id);
+  
   sodb.collection("questions").findOne({"id": id}, function(err, result) {
     if (err) {
       console.log("Error");
