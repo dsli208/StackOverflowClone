@@ -411,10 +411,10 @@ app.post('/questions/:id/answers/add', (req, res) => {
         console.log("Error");
         res.json({"status": "error", "error": "Error"});
       }
-      else if (result == null) {
+      /*else if (result == null) {
         console.log("Nonexistent question");
         res.json({"status": "error", "error": "A question with this ID does not exist."});
-      }
+      }*/
       else {
         //console.log(result);
         //console.log(result.answers);
