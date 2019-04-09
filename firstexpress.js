@@ -465,6 +465,7 @@ app.post('/search', (req, res) => {
       console.log("String of ONLY WHITESPACES");
     }
     if (req.body.q != null && req.body.q != "" && !(req.body.q.match(/^\s*$/))) {
+      console.log(req.body.q);
       search_q = req.body.q;
     }
     if (req.body.timestamp != null) {
