@@ -462,6 +462,7 @@ app.post('/search', (req, res) => {
   var search_q = null;
   // var search_q2 = null;
   if (req != null && req.body != null) {
+    console.log(req.body);
     if (req.body.q.match(/^\s*$/)) {
       console.log("String of ONLY WHITESPACES");
     }
@@ -489,6 +490,7 @@ app.post('/search', (req, res) => {
 
     var query = {"timestamp": {$lte: timestamp}};
     if (search_q != null) {
+      console.log("Modifying query");
       // {"title": {"$regex": ".*" + " " + search_q + " " +  ".*"}}, {"body": {"$regex": ".*" + " " +  search_q + " " + ".*"}},
       /*db.ensureIndex("questions", {
         document: "text"
