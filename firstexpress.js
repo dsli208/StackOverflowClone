@@ -396,6 +396,7 @@ app.get('/questions/:id', (req, res) => {
 app.post('/questions/:id/answers/add', (req, res) => {
   var id = req.params.id;
   console.log(req.session);
+  var uname = null;
 
   // First, check that a user is logged in
   if (req.session['__attributes']['username'] == null && req.session.username == null) {
@@ -407,6 +408,12 @@ app.post('/questions/:id/answers/add', (req, res) => {
     res.json({"status": "error", "error": "The answer needs a body"});
   }
   else {
+    if (req.session['__attributes']['username'] == null) {
+      uname = req.session.username;
+    }
+    else {
+      uname = req.session['__attributes']['username'];
+    }
     //console.log(id);
     //console.log(req.body.body);
     sodb.collection("answers").findOne({"id": id}, function(err, result) {
@@ -423,7 +430,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
         //console.log(result.answers);
 
         var answerid = randomstring.generate();
-        var answerobj = {"id": answerid, "user": req.session['__attributes']['username'], "body": req.body.body, "score": 0, "is_accepted": false, "timestamp": Date.now() / 1000, "media": null};
+        var answerobj = {"id": answerid, "user": uname, "body": req.body.body, "score": 0, "is_accepted": false, "timestamp": Date.now() / 1000, "media": null};
 
         var answers_arr = result.answers;
         answers_arr.push(answerobj);
