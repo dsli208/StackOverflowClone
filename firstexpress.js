@@ -91,6 +91,7 @@ app.use(function (req, res, next) {
     session.startSession(req, res, function() {
         console.log("Start session function called");
         // ...
+        console.log(req.session);
         next();
     });
 })
