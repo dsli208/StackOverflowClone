@@ -393,6 +393,7 @@ app.get('/questions/:id', (req, res) => {
 
 app.post('/questions/:id/answers/add', (req, res) => {
   var id = req.params.id;
+  console.log(req.session);
 
   // First, check that a user is logged in
   if (req.session['__attributes']['username'] == null) {
@@ -431,10 +432,11 @@ app.post('/questions/:id/answers/add', (req, res) => {
           if (err2) throw err2;
           else {
             console.log("DB updated successfully");
+            res.json({"status": "OK", "id": answerid});
           }
         })
 
-        res.json({"status": "OK", "id": answerid});
+        //res.json({"status": "OK", "id": answerid});
       }
     })
   }
