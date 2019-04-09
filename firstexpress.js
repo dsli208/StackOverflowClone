@@ -434,6 +434,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
           else {
             console.log("DB updated successfully");
             res.json({"status": "OK", "id": answerid});
+            return;
           }
         })
 
