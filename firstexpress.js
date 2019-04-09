@@ -399,9 +399,11 @@ app.post('/questions/:id/answers/add', (req, res) => {
     res.json({"status": "error", "error": "No user logged in"});
   }
   else if (req.body.body == null) {
+    console.log("NO BODY");
     res.json({"status": "error", "error": "The answer needs a body"});
   }
   else {
+    console.log(req.body.body);
     sodb.collection("answers").findOne({"id": id}, function(err, result) {
       if (err) {
         console.log("Error");
@@ -424,13 +426,16 @@ app.post('/questions/:id/answers/add', (req, res) => {
 
         // Update DB Entry
         sodb.collection("answers").updateOne({"id": id}, new_answer_arr, function(err2, res2) {
-          if (err2) throw err2;
+          if (err2) {
+            console.log("err2 caught");
+            throw err2;
+          }
           else {
             console.log("DB updated successfully");
+            res.json({"status": "OK", "id": answerid});
           }
         })
 
-        res.json({"status": "OK", "id": answerid});
       }
     })
   }
