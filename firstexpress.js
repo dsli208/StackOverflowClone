@@ -428,7 +428,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
         sodb.collection("answers").updateOne({"id": id}, new_answer_arr, function(err2, res2) {
           if (err2) {
             console.log("err2 caught");
-            throw err2;
+            res.json({"status": "error", "error": "err2"});
           }
           else {
             console.log("DB updated successfully");
