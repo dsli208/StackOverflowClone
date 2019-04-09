@@ -460,6 +460,7 @@ app.post('/search', (req, res) => {
   var limit = 25;
   var accepted = false;
   var search_q = null;
+  // var search_q2 = null;
   if (req != null && req.body != null) {
     if (req.body.q.match(/^\s*$/)) {
       console.log("String of ONLY WHITESPACES");
@@ -467,6 +468,7 @@ app.post('/search', (req, res) => {
     if (req.body.q != null && req.body.q != "" && !(req.body.q.match(/^\s*$/))) {
       console.log(req.body.q);
       search_q = req.body.q;
+      // search_q2 = search_q.split(/(\s+)/);
     }
     if (req.body.timestamp != null) {
       console.log("Setting timestamp");
@@ -487,7 +489,7 @@ app.post('/search', (req, res) => {
 
     var query = {"timestamp": {$lte: timestamp}};
     if (search_q != null) {
-      query = {$and:[{"timestamp": {$lte: timestamp}}, {$or: [{"title": {"$regex": ".*" + ' ' + search_q +' ' +  ".*"}}, {"body": {"$regex": ".*" + " " +  search_q + " " + ".*"}}]}]}; // Add a search query here
+      query = {$and:[{"timestamp": {$lte: timestamp}}, {$or: [{"title": {"$regex": ".*" + " " + search_q + " " +  ".*"}}, {"body": {"$regex": ".*" + " " +  search_q + " " + ".*"}}, {"title": {"$text": {"$search": search_q}}}, {"body": {"$text": {"$search": search_q}}}]}]}; // Add a search query here
     }
     var sorter = {"timestamp": -1};
 
