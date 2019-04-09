@@ -489,7 +489,7 @@ app.post('/search', (req, res) => {
 
     var query = {"timestamp": {$lte: timestamp}};
     if (search_q != null) {
-      query = {$and:[{"timestamp": {$lte: timestamp}}, {$or: [{"title": {"$regex": ".*" + " " + search_q + " " +  ".*"}}, {"body": {"$regex": ".*" + " " +  search_q + " " + ".*"}}, {"title": {"$text": {"$search": search_q}}}, {"body": {"$text": {"$search": search_q}}}]}]}; // Add a search query here
+      query = {$and:[{"timestamp": {$lte: timestamp}}, {$or: [{"title": {"$regex": ".*" + " " + search_q + " " +  ".*"}}, {"body": {"$regex": ".*" + " " +  search_q + " " + ".*"}}, {"$text": {"$search": search_q}}, {"$text": {"$search": search_q}}]}]}; // Add a search query here
     }
     var sorter = {"timestamp": -1};
 
