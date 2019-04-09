@@ -414,8 +414,8 @@ app.post('/questions/:id/answers/add', (req, res) => {
         res.json({"status": "error", "error": "A question with this ID does not exist."});
       }
       else {
-        console.log(result);
-        console.log(result.answers);
+        //console.log(result);
+        //console.log(result.answers);
 
         var answerid = randomstring.generate();
         var answerobj = {"id": answerid, "user": req.session['__attributes']['username'], "body": req.body.body, "score": 0, "is_accepted": false, "timestamp": Date.now() / 1000, "media": null};
