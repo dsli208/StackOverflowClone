@@ -396,6 +396,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
 
   // First, check that a user is logged in
   if (req.session['__attributes']['username'] == null) {
+    console.log("No user logged in");
     res.json({"status": "error", "error": "No user logged in"});
   }
   else if (req.body.body == null) {
@@ -437,7 +438,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
             return;
           }
         })
-
+        console.log("Should not reach here");
       }
     })
   }
