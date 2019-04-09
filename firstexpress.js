@@ -635,7 +635,7 @@ app.get('/user/:username/answers', (req, res) => {
 
       console.log(ans);
       ans.forEach(f => {
-        if (f.user == "dsli") {
+        if (f.user == username) {
           a_id_arr.push(f.id);
         }
       })
