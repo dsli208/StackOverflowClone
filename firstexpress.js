@@ -411,10 +411,10 @@ app.post('/questions/:id/answers/add', (req, res) => {
         console.log("Error");
         res.json({"status": "error", "error": "Error"});
       }
-      /*else if (result == null) {
+      else if (result == null) {
         console.log("Nonexistent question");
         res.json({"status": "error", "error": "A question with this ID does not exist."});
-      }*/
+      }
       else {
         //console.log(result);
         //console.log(result.answers);
@@ -428,17 +428,13 @@ app.post('/questions/:id/answers/add', (req, res) => {
 
         // Update DB Entry
         sodb.collection("answers").updateOne({"id": id}, new_answer_arr, function(err2, res2) {
-          if (err2) {
-            console.log("err2 caught");
-            res.json({"status": "error", "error": "err2"});
-          }
+          if (err2) throw err2;
           else {
-            // console.log("DB updated successfully");
-            res.json({"status": "OK", "id": answerid});
-            return;
+            console.log("DB updated successfully");
           }
         })
-        console.log("Should not reach here");
+
+        res.json({"status": "OK", "id": answerid});
       }
     })
   }
