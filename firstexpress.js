@@ -499,7 +499,7 @@ app.post('/search', (req, res) => {
       });
       sodb.collection("questions").ensureIndex({"title": search_q, "body": search_q});*/
       //{$or: [{"$text": {"$search": search_q}}, {"$text": {"$search": search_q}}]}]
-      query = {$and:[{"timestamp": {$lte: timestamp}}, {"$text": {"$search": search_q}}]}; // Add a search query here
+      query = {$and:[{"timestamp": {$lte: timestamp}}, {"$text": {"$search": search_q, "$language": "none"}}]}; // Add a search query here
     }
     var sorter = {"timestamp": -1};
 
