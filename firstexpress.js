@@ -260,6 +260,7 @@ app.post('/login', (req, res) => {
 
         // If verified, put them in the session
         req.session.put('username', username);
+        req.session.username = username;
         console.log(req.session['__attributes']);
 
         res.json(retdict);
@@ -397,7 +398,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
   console.log(req.session);
 
   // First, check that a user is logged in
-  if (req.session['__attributes']['username'] == null) {
+  if (req.session['__attributes']['username'] == null && req.session.username == null) {
     console.log("No user logged in");
     res.json({"status": "error", "error": "No user logged in"});
   }
