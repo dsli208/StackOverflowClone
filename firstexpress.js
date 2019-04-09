@@ -323,7 +323,7 @@ app.post('/questions/add', (req, res) => {
 app.get('/questions/:id', (req, res) => {
   var id = req.params.id;
   console.log("ID: " + id);
-  
+
   sodb.collection("questions").findOne({"id": id}, function(err, result) {
     if (err) {
       console.log("Error");
@@ -370,6 +370,7 @@ app.get('/questions/:id', (req, res) => {
           sodb.collection("questions").findOne({"id": id}, function(err3, res3) {
             if (err3) throw err3;
             else {
+              console.log("Post update result");
               console.log(res3);
               res.json({"status": "OK", "question": res3});
             }
