@@ -207,7 +207,7 @@ app.post('/verify', (req, res) => {
       console.log("Connected to DB for insert");
 
       // Since we have verified the user, add them to the verified users colelction so that they can log in
-          sodb.collection("verified_users").insertOne({username:username, password:password, email: email, reputation: 0}).then(function(err, result) {
+          sodb.collection("verified_users").insertOne({username:username, password:password, email: email, reputation: 1}).then(function(err, result) {
             console.log("1 verified user added to VERIFIED USERS collection");
             res.json(retdict);
           }).catch(function(err) {
