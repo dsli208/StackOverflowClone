@@ -404,7 +404,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
     res.json({"status": "error", "error": "The answer needs a body"});
   }
   else {
-    console.log(id);
+    //console.log(id);
     //console.log(req.body.body);
     sodb.collection("answers").findOne({"id": id}, function(err, result) {
       if (err) {
@@ -433,7 +433,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
             res.json({"status": "error", "error": "err2"});
           }
           else {
-            console.log("DB updated successfully");
+            // console.log("DB updated successfully");
             res.json({"status": "OK", "id": answerid});
             return;
           }
