@@ -18,7 +18,7 @@ var url = "mongodb://localhost:27017/";
 var mongodb;
 var sodb;
 
-//var session = require('express-session');
+var session = require('express-session');
 
 var glob_username;
 var glob_session;
@@ -93,7 +93,7 @@ nodemailer.createTestAccount((err, account) => {
 
 // Adding session support
 // init
-/*app.use(session({
+app.use(session({
   secret: 'keyboard cat',
   resave: false,
   saveUninitialized: true
@@ -105,26 +105,26 @@ app.use(function (req, res, next) {
   }
 
   // get the url pathname
-  var pathname = parseurl(req).pathname;
+  //var pathname = parseurl(req).pathname;
 
   // count the views
-  req.session.views[pathname] = (req.session.views[pathname] || 0) + 1;
+  //req.session.views[pathname] = (req.session.views[pathname] || 0) + 1;
 
   next();
-})*/
+})
 
-session = new NodeSession({secret: 'Q3UBzdH9GEfiRCTKbi5MTPyChpzXLsTD'});
+//session = new NodeSession({secret: 'Q3UBzdH9GEfiRCTKbi5MTPyChpzXLsTD'});
 
 // start session for an http request - response
 // this will define a session property to the request object
-app.use(function (req, res, next) {
+/*app.use(function (req, res, next) {
     session.startSession(req, res, function() {
         console.log("Start session function called");
         // ...
         console.log(req.session);
         next();
     });
-})
+})*/
 
 // Milestone 1
 
@@ -290,11 +290,11 @@ app.post('/login', (req, res) => {
 
         // If verified, put them in the session
         glob_username = username;
-        req.session.put('username', username);
+        // req.session.put('username', username);
         req.session.username = username;
         glob_session = req.session;
         //req.session.save();
-        console.log(req.session['__attributes']);
+        //console.log(req.session['__attributes']);
 
         res.json(retdict);
       }
@@ -304,8 +304,8 @@ app.post('/login', (req, res) => {
 
 app.post('/logout', (req, res) => {
   console.log("Logout called");
-  req.session['__attributes']['username'] = null;
-  req.session.user = null; // maybe use req.session.forget() instead?
+  //req.session['__attributes']['username'] = null;
+  req.session.username = null; // maybe use req.session.forget() instead?
   user = null;
 
   res.json({"status": "OK"});
@@ -315,7 +315,7 @@ app.post('/questions/add', (req, res) => {
   //console.log("Session details:");
   console.log(req.session);
   // First, check that a user is logged in
-  if (req.session['__attributes']['username'] == null) {
+  if (req.session.username == null) {
     res.json({"status": "error", "error": "No user logged in"});
   }
   else if (req.body.title == null) {
@@ -335,7 +335,7 @@ app.post('/questions/add', (req, res) => {
 
       }
     })*/
-    var obj = {"id": id, "user": {"username": req.session['__attributes']['username'], "reputation": 1}, "title": req.body.title, "body": req.body.body, "score": 0, "view_count": 1, "answer_count": 0, "timestamp": Date.now() / 1000, "media": null, "tags": req.body.tags, "accepted_answer_id": null};
+    var obj = {"id": id, "user": {"username": req.session.username, "reputation": 1}, "title": req.body.title, "body": req.body.body, "score": 0, "view_count": 1, "answer_count": 0, "timestamp": Date.now() / 1000, "media": null, "tags": req.body.tags, "accepted_answer_id": null};
     sodb.collection("questions").insertOne(obj , function(err, result) {
       if (err) {
         res.json({"status": "error", "error": "Error creating question at this time"});
@@ -377,11 +377,13 @@ app.get('/questions/:id', (req, res) => {
       // First determine if user is new
       var username;
 
-      if (req.session['__attributes']['username'] == null) {
+      // if (req.session['__attributes']['username'] == null)
+      if (req.session.username == null) {
           username = ip.address();
       }
       else {
-        username = req.session['__attributes']['username'];
+        // username = req.session['__attributes']['username'];
+        username = req.session.username;
       }
       sodb.collection("views").findOne({"id": id}).then(function(res4) {
         var views = res4.views;
@@ -433,7 +435,8 @@ app.post('/questions/:id/answers/add', (req, res) => {
   var uname = null;
 
   // First, check that a user is logged in
-  if (req.session['__attributes']['username'] == null && req.session.username == null) {
+  //req.session['__attributes']['username'] == null &&
+  if (req.session.username == null) {
     console.log("No user logged in at POST 1 ");
     //if (glob_session == null) {
     res.json({"status": "error", "error": "No user logged in"});
@@ -447,12 +450,13 @@ app.post('/questions/:id/answers/add', (req, res) => {
     res.json({"status": "error", "error": "The answer needs a body"});
   }
   else {
-    if (req.session['__attributes']['username'] == null) {
+    /*if (req.session['__attributes']['username'] == null) {
       uname = req.session.username;
     }
     else {
       uname = req.session['__attributes']['username'];
-    }
+    }*/
+    uname = req.session.username;
     console.log(uname);
     //console.log(req.body.body);
     sodb.collection("answers").findOne({"id": id}, function(err, result) {
@@ -586,7 +590,7 @@ app.post('/search', (req, res) => {
 // Milestone 2 new functions
 
 app.delete('/questions/:id', (req, res) => {
-  if (req.session['__attributes']['username'] == null) {
+  if (req.session.username == null) {
     res.json({"status": "error", "error": "No user logged in"});
   }
   else {
@@ -594,7 +598,7 @@ app.delete('/questions/:id', (req, res) => {
 
     sodb.collection("questions").findOne({id: id}, function(err, result) {
       if (err) throw err;
-      if (result.user['username'] != req.session['__attributes']['username']) {
+      if (result.user['username'] != req.session.username) {
         res.json({"status": "error", "error": "Only the author can delete their question"});
       }
       else {
