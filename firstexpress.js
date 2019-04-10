@@ -409,8 +409,12 @@ app.post('/questions/:id/answers/add', (req, res) => {
   // First, check that a user is logged in
   if (req.session['__attributes']['username'] == null && req.session.username == null) {
     console.log("No user logged in at POST 1 ");
+    if (glob_username == null) {
+      res.json({"status": "error", "error": "No user logged in"});
+    }
+    else {
     req.session.put('username', glob_username);
-    //res.json({"status": "OK", "id": "abc"});
+    }
   }
   if (req.body.body == null) {
     console.log("NO BODY");
@@ -643,7 +647,7 @@ app.get('/user/:username/answers', (req, res) => {
     result.forEach (e => {
       var ans = e.answers;
 
-      console.log(ans);
+      //console.log(ans);
       ans.forEach(f => {
         if (f.user == username) {
           a_id_arr.push(f.id);
