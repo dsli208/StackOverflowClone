@@ -622,7 +622,8 @@ app.get('/user/:username/answers', (req, res) => {
   var username = req.params.username;
   // Find all answers where user['username'] is the given username
 
-  sodb.collection("answers").find().toArray(function (err, result) {
+  var sorter = {"timestamp": -1}
+  sodb.collection("answers").find().sort(sorter).toArray(function (err, result) {
     if (err) throw err;
 
     // return the array of Question ID's
