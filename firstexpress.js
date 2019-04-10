@@ -18,6 +18,8 @@ var url = "mongodb://localhost:27017/";
 var mongodb;
 var sodb;
 
+var glob_username;
+
 // Create DB and it's associated collections
 
 MongoClient.connect(url, function(err, db) {
@@ -53,6 +55,11 @@ MongoClient.connect(url, function(err, db) {
   sodb.createCollection("views", function(err, res) {
     if (err) throw err;
     console.log("Views collection created");
+  })
+
+  sodb.createCollection("userbackup", function(err, res) {
+    if (err) throw err;
+    console.log("Backup user collection created");
   })
 });
 
@@ -259,6 +266,7 @@ app.post('/login', (req, res) => {
         console.log("Entry found. Logging in.");
 
         // If verified, put them in the session
+        glob_username = username;
         req.session.put('username', username);
         req.session.username = username;
         console.log(req.session['__attributes']);
@@ -401,9 +409,10 @@ app.post('/questions/:id/answers/add', (req, res) => {
   // First, check that a user is logged in
   if (req.session['__attributes']['username'] == null && req.session.username == null) {
     console.log("No user logged in at POST 1 ");
-    res.json({"status": "OK", "id": "abc"});
+    req.session.put('username', glob_username);
+    //res.json({"status": "OK", "id": "abc"});
   }
-  else if (req.body.body == null) {
+  if (req.body.body == null) {
     console.log("NO BODY");
     res.json({"status": "error", "error": "The answer needs a body"});
   }
