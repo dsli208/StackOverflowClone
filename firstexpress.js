@@ -599,7 +599,8 @@ app.delete('/questions/:id', (req, res) => {
     sodb.collection("questions").findOne({id: id}, function(err, result) {
       if (err) throw err;
       if (result.user['username'] != req.session.username) {
-        res.json({"status": "error", "error": "Only the author can delete their question"});
+        res.send(403,"You do not have rights to do this!");
+        //res.json({"status": "error", "error": "Only the author can delete their question"});
       }
       else {
         sodb.collection("questions").deleteOne({id: id}, function(err, result) {
