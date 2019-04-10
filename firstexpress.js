@@ -423,7 +423,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
     else {
       uname = req.session['__attributes']['username'];
     }
-    //console.log(id);
+    console.log(uname);
     //console.log(req.body.body);
     sodb.collection("answers").findOne({"id": id}, function(err, result) {
       if (err) {
