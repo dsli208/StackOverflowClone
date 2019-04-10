@@ -19,6 +19,7 @@ var mongodb;
 var sodb;
 
 var glob_username;
+var glob_session;
 
 // Create DB and it's associated collections
 
@@ -269,6 +270,7 @@ app.post('/login', (req, res) => {
         glob_username = username;
         req.session.put('username', username);
         req.session.username = username;
+        glob_session = req.session;
         console.log(req.session['__attributes']);
 
         res.json(retdict);
@@ -413,7 +415,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
       res.json({"status": "error", "error": "No user logged in"});
     }
     else {
-    req.session.put('username', glob_username);
+      req.session = glob_session;
     }
   }
   if (req.body.body == null) {
