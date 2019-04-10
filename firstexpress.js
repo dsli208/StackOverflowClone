@@ -591,7 +591,7 @@ app.post('/search', (req, res) => {
 
 app.delete('/questions/:id', (req, res) => {
   if (req.session.username == null) {
-    res.json({"status": "error", "error": "No user logged in"});
+    res.send(403,"You do not have rights to do this!");
   }
   else {
     var id = req.params.id;
