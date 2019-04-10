@@ -18,6 +18,8 @@ var url = "mongodb://localhost:27017/";
 var mongodb;
 var sodb;
 
+//var session = require('express-session');
+
 var glob_username;
 var glob_session;
 
@@ -91,6 +93,26 @@ nodemailer.createTestAccount((err, account) => {
 
 // Adding session support
 // init
+/*app.use(session({
+  secret: 'keyboard cat',
+  resave: false,
+  saveUninitialized: true
+}))
+
+app.use(function (req, res, next) {
+  if (!req.session.views) {
+    req.session.views = {};
+  }
+
+  // get the url pathname
+  var pathname = parseurl(req).pathname;
+
+  // count the views
+  req.session.views[pathname] = (req.session.views[pathname] || 0) + 1;
+
+  next();
+})*/
+
 session = new NodeSession({secret: 'Q3UBzdH9GEfiRCTKbi5MTPyChpzXLsTD'});
 
 // start session for an http request - response
@@ -271,6 +293,7 @@ app.post('/login', (req, res) => {
         req.session.put('username', username);
         req.session.username = username;
         glob_session = req.session;
+        //req.session.save();
         console.log(req.session['__attributes']);
 
         res.json(retdict);
@@ -280,6 +303,7 @@ app.post('/login', (req, res) => {
 })
 
 app.post('/logout', (req, res) => {
+  console.log("Logout called");
   req.session['__attributes']['username'] = null;
   req.session.user = null; // maybe use req.session.forget() instead?
   user = null;
@@ -411,14 +435,14 @@ app.post('/questions/:id/answers/add', (req, res) => {
   // First, check that a user is logged in
   if (req.session['__attributes']['username'] == null && req.session.username == null) {
     console.log("No user logged in at POST 1 ");
-    if (glob_session == null) {
-      res.json({"status": "error", "error": "No user logged in"});
-    }
-    else {
-      req.session = glob_session;
-    }
+    //if (glob_session == null) {
+    res.json({"status": "error", "error": "No user logged in"});
+    //}
+    //else {
+      //req.session = glob_session;
+    //}
   }
-  if (req.body.body == null) {
+  else if (req.body.body == null) {
     console.log("NO BODY");
     res.json({"status": "error", "error": "The answer needs a body"});
   }
