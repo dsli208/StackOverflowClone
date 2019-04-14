@@ -12,6 +12,12 @@ app.use(express.json());
 
 const ip = require('ip');
 
+// New stuff for Media functionality (M3)
+var cassandra = require('cassandra-driver');
+var multer  = require('multer');
+var upload = multer({dest: 'uploads/'});
+var fs = require('file-system');
+
 //var mongoose = require('mongoose');
 var MongoClient = require('mongodb').MongoClient;
 var url = "mongodb://localhost:27017/";
@@ -312,6 +318,7 @@ app.post('/logout', (req, res) => {
 })
 
 app.post('/questions/add', (req, res) => {
+  // Modify for handling media array
   //console.log("Session details:");
   console.log(req.session);
   // First, check that a user is logged in
@@ -346,7 +353,7 @@ app.post('/questions/add', (req, res) => {
           if (err2) throw err2;
           else console.log("Counterpart for this question in the answers collection also created.");
         })
-        sodb.collection("views").insertOne({"id": id, "views": []}), function(err3, res3) {
+        sodb.collection("views").insertOne({"id": id, "views": [], "votes": []}), function(err3, res3) {
           if (err3) throw err3;
           else console.log("Views component for this question also created.");
         }
@@ -605,7 +612,13 @@ app.delete('/questions/:id', (req, res) => {
       else {
         sodb.collection("questions").deleteOne({id: id}, function(err, result) {
           if (err) throw err;
-          console.log("1 document deleted");
+          console.log("1 question document deleted");
+
+          // Rough draft for deleting answers and media
+          sodb.collection("answers").deleteOne({id: id}, function(err2, res2) {
+            if (err2) throw err2;
+            console.log("1 answers document deleted");
+          })
 
           res.json({"status": "OK"});
         });
@@ -688,6 +701,28 @@ app.get('/user/:username/answers', (req, res) => {
 
     res.json({"status": "OK", "answers": a_id_arr});
   })
+})
+
+// Milestone 3 new functionality
+app.post("/questions/:id/upvote", (req, res) => {
+
+})
+
+app.post("/answers/:id/upvote", (req, res) => {
+
+})
+
+app.post("/answers/:id/accept", (req, res) => {
+
+})
+
+// Takes in FORM DATA, you may need to install something like multer
+app.post("/addmedia", (req, res) => {
+
+})
+
+app.get("/media/:id", (req, res) => {
+
 })
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
