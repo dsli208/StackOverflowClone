@@ -353,7 +353,7 @@ app.post('/questions/add', (req, res) => {
           if (err2) throw err2;
           else console.log("Counterpart for this question in the answers collection also created.");
         })
-        sodb.collection("views").insertOne({"id": id, "views": [], "votes": []}), function(err3, res3) {
+        sodb.collection("views").insertOne({"id": id, "views": [], "upvotes": [], "downvotes": []]}}), function(err3, res3) {
           if (err3) throw err3;
           else console.log("Views component for this question also created.");
         }
@@ -705,7 +705,89 @@ app.get('/user/:username/answers', (req, res) => {
 
 // Milestone 3 new functionality
 app.post("/questions/:id/upvote", (req, res) => {
+  var id = req.params.id;
+  var username = req.session.username;
 
+  if (username == null) {
+    console.log("No user logged in");
+    return;
+  }
+
+  sodb.collection("views").findOne({"id": id}, function(err, result) {
+    var upvotes = result.upvotes;
+    var downvotes = result.downvotes;
+    var vote = req.body.upvote; // True if upvote, false if downvote
+
+    if (vote == true) {
+      // First, make sure the person isn't upvoting twice
+      if (upvotes.indexOf(username) >= 0) {
+        console.log("User attempted to upvote twice (not allowed)");
+        return;
+      }
+      else if (downvotes.indexOf(username) >= 0) { // case if user is in the downvotes array
+        downvotes.splice(downvotes.indexOf(username), 1);
+      }
+
+      upvotes.push(username);
+
+      var new_rep = upvotes.length - downvotes.length;
+
+      var new_views_dict = {$set: {"upvotes": upvotes, "downvotes": downvotes}};
+
+      sodb.collection("views").updateOne({'id': id}, new_views_dict, function(e2, r2) {
+        if (e2) throw e2;
+
+        else console.log("Votes updated");
+      })
+
+      sodb.collection("questions").updateOne({"id": id}, {$set: {"reputation": new_rep}}, function(e3, r3) {
+        if (e3) throw e3;
+        else console.log("Question reputation updated");
+      })
+    }
+    else {
+      // We need to get the reputation first, to ensure it won't go below the minimum of 1
+      sodb.collection("questions").findOne({"id": id}, function(e4, r4) {
+        if (e4) throw e4;
+        else if (r4.reputation - 1 < 1) {
+          console.log("Question must have a minimum reputation of 1 (subtract 1)");
+          return;
+        }
+        else {
+          if (downvotes.indexOf(username) >= 0) {
+            console.log("Cannot downvote twice");
+            return;
+          }
+          else if (upvotes.indexOf(username) >= 0) {
+            if (r4.reputation - 2 < 1) {
+              console.log("Question must have a minimum reputation of 1 (subtract 2)");
+              return;
+            }
+            else {
+              upvotes.splice(upvotes.indexof(username));
+            }
+          }
+
+          downvotes.push(username);
+
+          var new_rep = upvotes.length - downvotes.length;
+
+          var new_views_dict = {$set: {"upvotes": upvotes, "downvotes": downvotes}};
+
+          sodb.collection("views").updateOne({'id': id}, new_views_dict, function(e5, r5) {
+            if (e5) throw e5;
+
+            else console.log("Votes updated");
+          })
+
+          sodb.collection("questions").updateOne({"id": id}, {$set: {"reputation": new_rep}}, function(e6, r6) {
+            if (e6) throw e6;
+            else console.log("Question reputation updated");
+          })
+        }
+      })
+    }
+  })
 })
 
 app.post("/answers/:id/upvote", (req, res) => {
