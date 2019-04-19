@@ -70,6 +70,11 @@ MongoClient.connect(url, function(err, db) {
     if (err) throw err;
     console.log("Backup user collection created");
   })
+
+  sodb.createCollection("answer_list", function(err, res) {
+    if (err) throw err;
+    console.log("Created answer list");
+  })
 });
 
 // Setup email createServer
@@ -342,7 +347,7 @@ app.post('/questions/add', (req, res) => {
 
       }
     })*/
-    var obj = {"id": id, "user": {"username": req.session.username, "reputation": 1}, "title": req.body.title, "body": req.body.body, "score": 0, "view_count": 1, "answer_count": 0, "timestamp": Date.now() / 1000, "media": null, "tags": req.body.tags, "accepted_answer_id": null};
+    var obj = {"id": id, "user": {"username": req.session.username, "reputation": 1}, "title": req.body.title, "body": req.body.body, "score": 0, "view_count": 1, "answer_count": 0, "timestamp": Date.now() / 1000, "media": null, "tags": req.body.tags, "accepted_answer_id": null, "reputation": 1};
     sodb.collection("questions").insertOne(obj , function(err, result) {
       if (err) {
         res.json({"status": "error", "error": "Error creating question at this time"});
@@ -353,7 +358,7 @@ app.post('/questions/add', (req, res) => {
           if (err2) throw err2;
           else console.log("Counterpart for this question in the answers collection also created.");
         })
-        sodb.collection("views").insertOne({"id": id, "views": [], "upvotes": [], "downvotes": []]}}), function(err3, res3) {
+        sodb.collection("views").insertOne({"id": id, "views": [], "upvotes": [], "downvotes": []}), function(err3, res3) {
           if (err3) throw err3;
           else console.log("Views component for this question also created.");
         }
@@ -480,7 +485,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
         //console.log(result.answers);
 
         var answerid = randomstring.generate();
-        var answerobj = {"id": answerid, "user": uname, "body": req.body.body, "score": 0, "is_accepted": false, "timestamp": Date.now() / 1000, "media": null};
+        var answerobj = {"id": answerid, "user": uname, "body": req.body.body, "score": 0, "is_accepted": false, "timestamp": Date.now() / 1000, "media": null, "upvotes": [], "downvotes": []};
 
         var answers_arr = result.answers;
         answers_arr.push(answerobj);
@@ -492,6 +497,15 @@ app.post('/questions/:id/answers/add', (req, res) => {
           else {
             console.log("DB updated successfully");
             res.json({"status": "OK", "id": answerid});
+          }
+        })
+
+        // Insert into answer list -- works?
+        sodb.collection("answer_list").insertOne({"id": answerid, "media": null, "upvotes": [], "downvotes": []}, function(err3, res3) {
+          if (err3) throw err3;
+          else {
+            console.log("Answer added to list");
+
           }
         })
 
@@ -710,40 +724,88 @@ app.post("/questions/:id/upvote", (req, res) => {
 
   if (username == null) {
     console.log("No user logged in");
+    res.json({"status": "error", "error": "No user logged in"});
     return;
   }
 
   sodb.collection("views").findOne({"id": id}, function(err, result) {
     var upvotes = result.upvotes;
     var downvotes = result.downvotes;
-    var vote = req.body.upvote; // True if upvote, false if downvote
+    var vote = true; // True if upvote, false if downvote
+    if (req.body.upvote != null) {
+      vote = req.body.upvote;
+    }
 
     if (vote == true) {
       // First, make sure the person isn't upvoting twice
       if (upvotes.indexOf(username) >= 0) {
-        console.log("User attempted to upvote twice (not allowed)");
+        console.log("User has already upvoted.  Undoing upvote.");
+        upvotes.splice(upvotes.indexOf(username), 1);
+
+        var new_rep = 1 + upvotes.length - downvotes.length;
+
+        var new_views_dict = {$set: {"upvotes": upvotes, "downvotes": downvotes}};
+
+        sodb.collection("views").updateOne({'id': id}, new_views_dict, function(e5, r5) {
+          if (e5) throw e5;
+
+          else console.log("Votes updated - DOWNVOTE");
+        })
+
+        sodb.collection("questions").updateOne({"id": id}, {$set: {"reputation": new_rep}}, function(e6, r6) {
+          if (e6) throw e6;
+          else console.log("Question reputation updated - DOWNVOTE");
+        })
+
+        sodb.collection("verified_users").findOne({"username": username}, function(e7, r7) {
+          if (e7) throw e7;
+
+          var old_rep = r7.reputation;
+          if (old_rep <= 1) {
+            sodb.collection("verified_users").updateOne({"username": username}, {$set: {"reputation": old_rep - 1}}, function(e8, r8) {
+              if (e8) throw e8;
+              console.log("User reputation updated - DOWNVOTE");
+            })
+          }
+        })
+
+        res.json({"status": "OK"});
         return;
       }
       else if (downvotes.indexOf(username) >= 0) { // case if user is in the downvotes array
         downvotes.splice(downvotes.indexOf(username), 1);
       }
+      console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length);
 
       upvotes.push(username);
 
-      var new_rep = upvotes.length - downvotes.length;
+      var new_rep = 1 + upvotes.length - downvotes.length;
+      console.log("New reputation: " + new_rep);
 
       var new_views_dict = {$set: {"upvotes": upvotes, "downvotes": downvotes}};
 
       sodb.collection("views").updateOne({'id': id}, new_views_dict, function(e2, r2) {
         if (e2) throw e2;
 
-        else console.log("Votes updated");
+        else console.log("Votes updated - UPVOTE");
       })
 
       sodb.collection("questions").updateOne({"id": id}, {$set: {"reputation": new_rep}}, function(e3, r3) {
         if (e3) throw e3;
-        else console.log("Question reputation updated");
+        else console.log("Question reputation updated - UPVOTE");
       })
+
+      sodb.collection("verified_users").findOne({"username": username}, function(e7, r7) {
+        if (e7) throw e7;
+
+        var old_rep = r7.reputation;
+        sodb.collection("verified_users").updateOne({"username": username}, {$set: {"reputation": old_rep + 1}}, function(e8, r8) {
+          if (e8) throw e8;
+          console.log("User reputation updated - DOWNVOTE");
+        })
+      })
+
+      res.json({"status": "OK"});
     }
     else {
       // We need to get the reputation first, to ensure it won't go below the minimum of 1
@@ -751,39 +813,84 @@ app.post("/questions/:id/upvote", (req, res) => {
         if (e4) throw e4;
         else if (r4.reputation - 1 < 1) {
           console.log("Question must have a minimum reputation of 1 (subtract 1)");
+          res.json({"status": "error", "error": "Question must have a minimum reputation of 1 (subtract 1)"});
           return;
         }
         else {
           if (downvotes.indexOf(username) >= 0) {
-            console.log("Cannot downvote twice");
+            console.log("Cannot downvote twice.  Undoing downvote.");
+
+            downvotes.splice(downvotes.indexOf(username), 1);
+
+            var new_rep = 1 + upvotes.length - downvotes.length;
+
+            var new_views_dict = {$set: {"upvotes": upvotes, "downvotes": downvotes}};
+
+            sodb.collection("views").updateOne({'id': id}, new_views_dict, function(e5, r5) {
+              if (e5) throw e5;
+
+              else console.log("Votes updated - DOWNVOTE");
+            })
+
+            sodb.collection("questions").updateOne({"id": id}, {$set: {"reputation": new_rep}}, function(e6, r6) {
+              if (e6) throw e6;
+              else console.log("Question reputation updated - DOWNVOTE");
+            })
+
+            sodb.collection("verified_users").findOne({"username": username}, function(e7, r7) {
+              if (e7) throw e7;
+
+              var old_rep = r7.reputation;
+              sodb.collection("verified_users").updateOne({"username": username}, {$set: {"reputation": old_rep + 1}}, function(e8, r8) {
+                if (e8) throw e8;
+                console.log("User reputation updated - DOWNVOTE");
+              })
+            })
+
+            res.json({"status": "OK"});
             return;
           }
           else if (upvotes.indexOf(username) >= 0) {
             if (r4.reputation - 2 < 1) {
               console.log("Question must have a minimum reputation of 1 (subtract 2)");
+              res.json({"status": "error", "error": "Question must have a minimum reputation of 1 (subtract 2)"});
               return;
             }
             else {
-              upvotes.splice(upvotes.indexof(username));
+              upvotes.splice(upvotes.indexOf(username));
             }
           }
 
           downvotes.push(username);
 
-          var new_rep = upvotes.length - downvotes.length;
+          var new_rep = 1 + upvotes.length - downvotes.length;
 
           var new_views_dict = {$set: {"upvotes": upvotes, "downvotes": downvotes}};
 
           sodb.collection("views").updateOne({'id': id}, new_views_dict, function(e5, r5) {
             if (e5) throw e5;
 
-            else console.log("Votes updated");
+            else console.log("Votes updated - DOWNVOTE");
           })
 
           sodb.collection("questions").updateOne({"id": id}, {$set: {"reputation": new_rep}}, function(e6, r6) {
             if (e6) throw e6;
-            else console.log("Question reputation updated");
+            else console.log("Question reputation updated - DOWNVOTE");
           })
+
+          sodb.collection("verified_users").findOne({"username": username}, function(e7, r7) {
+            if (e7) throw e7;
+
+            var old_rep = r7.reputation;
+            if (old_rep <= 1) {
+              sodb.collection("verified_users").updateOne({"username": username}, {$set: {"reputation": old_rep - 1}}, function(e8, r8) {
+                if (e8) throw e8;
+                console.log("User reputation updated - DOWNVOTE");
+              })
+            }
+          })
+
+          res.json({"status": "OK"});
         }
       })
     }
@@ -791,7 +898,20 @@ app.post("/questions/:id/upvote", (req, res) => {
 })
 
 app.post("/answers/:id/upvote", (req, res) => {
+  var id = req.params.id;
 
+  var username = req.session.username;
+
+  if (username == null) {
+    console.log("No user logged in");
+    return;
+  }
+
+  sodb.collection("answers").findOne({"answers.id": id}, {"answers": {$elemMatch: {"id": id}}}, function(err, result) {
+    if (err) throw err;
+    console.log(result);
+    console.log("End of answers result");
+  })
 })
 
 app.post("/answers/:id/accept", (req, res) => {
