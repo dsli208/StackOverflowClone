@@ -993,6 +993,17 @@ app.post("/answers/:id/upvote", (req, res) => {
       var new_ans_rep = upvotes.length - downvotes.length;
       console.log("New answer reputation: " + new_ans_rep);
       // How to update the answer dictionary, then update the array, then update the answers entry with the new array?
+      var answerUpdateIndex = result.answers.findIndex(x => x.id === id);
+      if (answerUpdateIndex >= 0) {
+        result.answers[answerUpdateIndex] = answer;
+
+        sodb.collection("answers").updateOne({"answers.id": id}, {$set: {"answers" : result.answers}}, function(e9, r9) {
+          if (e9) throw e9;
+          else {
+            console.log("Answers array updated ... hopefully");
+          }
+        })
+      }
 
       sodb.collection("verified_users").findOne({"username": a_username}, function(e7, r7) {
         if (e7) throw e7;
@@ -1018,6 +1029,17 @@ app.post("/answers/:id/upvote", (req, res) => {
         answer.downvotes = downvotes;
 
         // How to update the answer dictionary, then update the array, then update the answers entry with the new array?
+        var answerUpdateIndex = result.answers.findIndex(x => x.id === id);
+        if (answerUpdateIndex >= 0) {
+          result.answers[answerUpdateIndex] = answer;
+
+          sodb.collection("answers").updateOne({"answers.id": id}, {$set: {"answers" : result.answers}}, function(e9, r9) {
+            if (e9) throw e9;
+            else {
+              console.log("Answers array updated ... hopefully");
+            }
+          })
+        }
 
         sodb.collection("verified_users").findOne({"username": a_username}, function(e7, r7) {
           if (e7) throw e7;
