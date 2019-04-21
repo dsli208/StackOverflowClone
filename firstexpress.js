@@ -566,9 +566,22 @@ app.post('/search', (req, res) => {
     }
 
     var query = {"timestamp": {$lte: timestamp}};
+    var query_and_arr = [query];
     if (search_q != null) {
       console.log("Modifying query");
-      query = {$and:[{"timestamp": {$lte: timestamp}}, {"$text": {"$search": search_q}}]}; // Add a search query here
+      query_and_arr.push({"$text": {"$search": search_q}});
+      //query = {$and:[{"timestamp": {$lte: timestamp}}, {"$text": {"$search": search_q}}]}; // Add a search query here
+      query = {$and: query_and_arr};
+    }
+
+    if (has_media) {
+      query_and_arr.push({"media":{$ne:null}});
+      query = {$and: query_and_arr};
+    }
+
+    if (accepted) {
+      query_and_arr.push({"accepted_answer_id": {$ne: null}});
+      query = {$and: query_and_arr};
     }
 
     var sorter = {"timestamp": -1};
