@@ -126,19 +126,6 @@ app.use(function (req, res, next) {
   next();
 })
 
-//session = new NodeSession({secret: 'Q3UBzdH9GEfiRCTKbi5MTPyChpzXLsTD'});
-
-// start session for an http request - response
-// this will define a session property to the request object
-/*app.use(function (req, res, next) {
-    session.startSession(req, res, function() {
-        console.log("Start session function called");
-        // ...
-        console.log(req.session);
-        next();
-    });
-})*/
-
 // Milestone 1
 
 app.get('/', (req, res) => res.send('Hello World!'))
@@ -303,11 +290,9 @@ app.post('/login', (req, res) => {
 
         // If verified, put them in the session
         glob_username = username;
-        // req.session.put('username', username);
         req.session.username = username;
         glob_session = req.session;
         //req.session.save();
-        //console.log(req.session['__attributes']);
 
         res.json(retdict);
       }
@@ -317,7 +302,6 @@ app.post('/login', (req, res) => {
 
 app.post('/logout', (req, res) => {
   console.log("Logout called");
-  //req.session['__attributes']['username'] = null;
   req.session.username = null; // maybe use req.session.forget() instead?
   user = null;
 
@@ -343,29 +327,28 @@ app.post('/questions/add', (req, res) => {
   }
   else {
     var id = randomstring.generate();
-    // Make sure that there does NOT exist an entry in the Questions collection that matches, god forbid
-    /*sodb.collection("questions").findOne({"id":id}).then(function(result) {
-      if (result != null) {
 
-      }
-    })*/
-    var obj = {"id": id, "user": {"username": req.session.username, "reputation": 1}, "title": req.body.title, "body": req.body.body, "score": 0, "view_count": 1, "answer_count": 0, "timestamp": Date.now() / 1000, "media": null, "tags": req.body.tags, "accepted_answer_id": null, "reputation": 0};
-    sodb.collection("questions").insertOne(obj , function(err, result) {
-      if (err) {
-        res.json({"status": "error", "error": "Error creating question at this time"});
-      }
-      else {
-        console.log("Question successfully inserted into Questions collection");
-        sodb.collection("answers").insertOne({"id": id, "answers": []}, function(err2, res2) {
-          if (err2) throw err2;
-          else console.log("Counterpart for this question in the answers collection also created.");
-        })
-        sodb.collection("views").insertOne({"id": id, "views": [], "upvotes": [], "downvotes": []}), function(err3, res3) {
-          if (err3) throw err3;
-          else console.log("Views component for this question also created.");
+    // HOW TO MAKE SURE THEIR REPUTATION IS NOT ALWAYS 1???
+    sodb.collection("verified_users").findOne({"username": req.session.username}, function(e1, r1) {
+      var u_rep = r1.reputation;
+      var obj = {"id": id, "user": {"username": req.session.username, "reputation": u_rep}, "title": req.body.title, "body": req.body.body, "score": 0, "view_count": 1, "answer_count": 0, "timestamp": Date.now() / 1000, "media": null, "tags": req.body.tags, "accepted_answer_id": null};
+      sodb.collection("questions").insertOne(obj , function(err, result) {
+        if (err) {
+          res.json({"status": "error", "error": "Error creating question at this time"});
         }
-        res.json({"status":"OK", "id": id});
-      }
+        else {
+          console.log("Question successfully inserted into Questions collection");
+          sodb.collection("answers").insertOne({"id": id, "answers": []}, function(err2, res2) {
+            if (err2) throw err2;
+            else console.log("Counterpart for this question in the answers collection also created.");
+          })
+          sodb.collection("views").insertOne({"id": id, "views": [], "upvotes": [], "downvotes": []}), function(err3, res3) {
+            if (err3) throw err3;
+            else console.log("Views component for this question also created.");
+          }
+          res.json({"status":"OK", "id": id});
+        }
+      })
     })
   }
 })
@@ -391,12 +374,10 @@ app.get('/questions/:id', (req, res) => {
       // First determine if user is new
       var username;
 
-      // if (req.session['__attributes']['username'] == null)
       if (req.session.username == null) {
           username = ip.address();
       }
       else {
-        // username = req.session['__attributes']['username'];
         username = req.session.username;
       }
       sodb.collection("views").findOne({"id": id}).then(function(res4) {
@@ -449,30 +430,17 @@ app.post('/questions/:id/answers/add', (req, res) => {
   var uname = null;
 
   // First, check that a user is logged in
-  //req.session['__attributes']['username'] == null &&
   if (req.session.username == null) {
     console.log("No user logged in at POST 1 ");
-    //if (glob_session == null) {
     res.json({"status": "error", "error": "No user logged in"});
-    //}
-    //else {
-      //req.session = glob_session;
-    //}
   }
   else if (req.body.body == null) {
     console.log("NO BODY");
     res.json({"status": "error", "error": "The answer needs a body"});
   }
   else {
-    /*if (req.session['__attributes']['username'] == null) {
-      uname = req.session.username;
-    }
-    else {
-      uname = req.session['__attributes']['username'];
-    }*/
     uname = req.session.username;
     console.log(uname);
-    //console.log(req.body.body);
     sodb.collection("answers").findOne({"id": id}, function(err, result) {
       if (err) {
         console.log("Error");
@@ -483,9 +451,6 @@ app.post('/questions/:id/answers/add', (req, res) => {
         res.json({"status": "error", "error": "A question with this ID does not exist."});
       }
       else {
-        //console.log(result);
-        //console.log(result.answers);
-
         var answerid = randomstring.generate();
         var answerobj = {"id": answerid, "user": uname, "body": req.body.body, "score": 0, "is_accepted": false, "timestamp": Date.now() / 1000, "media": null, "upvotes": [], "downvotes": []};
 
@@ -510,12 +475,9 @@ app.post('/questions/:id/answers/add', (req, res) => {
 
           }
         })
-
-        //res.json({"status": "OK", "id": answerid});
       }
     })
   }
-
 })
 
 app.get('/questions/:id/answers', (req, res) => {
@@ -538,12 +500,21 @@ app.get('/questions/:id/answers', (req, res) => {
   })
 })
 
+const search_by_options = {
+  TIMESTAMP: "timestamp",
+  SCORE: "score"
+}
+
 app.post('/search', (req, res) => {
   var timestamp = Date.now() / 1000;
   var limit = 25;
-  var accepted = false;
   var search_q = null;
-  // var search_q2 = null;
+  // New M3 additions
+  var sort_by = search_by_options.SCORE;
+  var tags = [];
+  var has_media = false;
+  var accepted = false;
+
   if (req != null && req.body != null) {
     console.log(req.body);
     if (req.body.q.match(/^\s*$/)) {
@@ -552,7 +523,6 @@ app.post('/search', (req, res) => {
     if (req.body.q != null && req.body.q != "" && !(req.body.q.match(/^\s*$/))) {
       console.log(req.body.q);
       search_q = req.body.q;
-      // search_q2 = search_q.split(/(\s+)/);
     }
     if (req.body.timestamp != null) {
       console.log("Setting timestamp");
@@ -570,21 +540,44 @@ app.post('/search', (req, res) => {
       accepted = req.body.accepted;
     }
 
+    if (req.body.sort_by != null) {
+      console.log("Setting sort by");
+      if (req.body.sort_by == "timestamp") {
+        console.log("To timestamp");
+        sort_by = search_by_options.TIMESTAMP;
+      }
+      else if (req.body.sort_by == "score") {
+        console.log("To score");
+        sort_by = search_by_options.SCORE;
+      }
+      else {
+        console.log("Incompatible sort_by input.  sort_by stays at score");
+      }
+    }
+
+    if (req.body.tags != null) {
+      console.log("Setting tags array");
+      tags = req.body.tags;
+    }
+
+    if (req.body.has_media != null) {
+      console.log("Setting has_media");
+      has_media = req.body.has_media;
+    }
 
     var query = {"timestamp": {$lte: timestamp}};
     if (search_q != null) {
       console.log("Modifying query");
-      // {"title": {"$regex": ".*" + " " + search_q + " " +  ".*"}}, {"body": {"$regex": ".*" + " " +  search_q + " " + ".*"}},
-      /*db.ensureIndex("questions", {
-        document: "text"
-      }, function(err, indexname) {
-        //assert.equal(null, err);
-      });
-      sodb.collection("questions").ensureIndex({"title": search_q, "body": search_q});*/
-      //{$or: [{"$text": {"$search": search_q}}, {"$text": {"$search": search_q}}]}]
       query = {$and:[{"timestamp": {$lte: timestamp}}, {"$text": {"$search": search_q}}]}; // Add a search query here
     }
+
     var sorter = {"timestamp": -1};
+    if (sort_by == search_by_options.SCORE) {
+      sorter = {"score": -1};
+    }
+    else if (sort_by == search_by_options.TIMESTAMP) {
+      sorter = {"timestamp": -1};
+    }
 
     sodb.collection("questions").find(query).sort(sorter).limit(limit).toArray(function(err, result) {
       if (err) {
@@ -760,7 +753,7 @@ app.post("/questions/:id/upvote", (req, res) => {
         console.log("User has already upvoted.  Undoing upvote.");
         upvotes.splice(upvotes.indexOf(username), 1);
 
-        var new_rep = upvotes.length - downvotes.length;
+        var new_score = upvotes.length - downvotes.length;
 
         var new_views_dict = {$set: {"upvotes": upvotes, "downvotes": downvotes}};
 
@@ -770,7 +763,7 @@ app.post("/questions/:id/upvote", (req, res) => {
           else console.log("Votes updated - DOWNVOTE");
         })
 
-        sodb.collection("questions").updateOne({"id": id}, {$set: {"reputation": new_rep}}, function(e6, r6) {
+        sodb.collection("questions").updateOne({"id": id}, {$set: {"score": new_score}}, function(e6, r6) {
           if (e6) throw e6;
           else console.log("Question reputation updated - DOWNVOTE");
         })
@@ -800,8 +793,8 @@ app.post("/questions/:id/upvote", (req, res) => {
 
       upvotes.push(username);
 
-      var new_rep = upvotes.length - downvotes.length;
-      console.log("New reputation: " + new_rep);
+      var new_score = upvotes.length - downvotes.length;
+      console.log("New reputation: " + new_score);
 
       var new_views_dict = {$set: {"upvotes": upvotes, "downvotes": downvotes}};
 
@@ -811,7 +804,7 @@ app.post("/questions/:id/upvote", (req, res) => {
         else console.log("Votes updated - UPVOTE");
       })
 
-      sodb.collection("questions").updateOne({"id": id}, {$set: {"reputation": new_rep}}, function(e3, r3) {
+      sodb.collection("questions").updateOne({"id": id}, {$set: {"score": new_score}}, function(e3, r3) {
         if (e3) throw e3;
         else console.log("Question reputation updated - UPVOTE");
       })
@@ -844,7 +837,7 @@ app.post("/questions/:id/upvote", (req, res) => {
 
             downvotes.splice(downvotes.indexOf(username), 1);
 
-            var new_rep = upvotes.length - downvotes.length;
+            var new_score = upvotes.length - downvotes.length;
 
             var new_views_dict = {$set: {"upvotes": upvotes, "downvotes": downvotes}};
 
@@ -854,7 +847,7 @@ app.post("/questions/:id/upvote", (req, res) => {
               else console.log("Votes updated - DOWNVOTE");
             })
 
-            sodb.collection("questions").updateOne({"id": id}, {$set: {"reputation": new_rep}}, function(e6, r6) {
+            sodb.collection("questions").updateOne({"id": id}, {$set: {"reputation": new_score}}, function(e6, r6) {
               if (e6) throw e6;
               else console.log("Question reputation updated - DOWNVOTE");
             })
@@ -886,7 +879,7 @@ app.post("/questions/:id/upvote", (req, res) => {
 
           downvotes.push(username);
 
-          var new_rep = upvotes.length - downvotes.length;
+          var new_score = upvotes.length - downvotes.length;
 
           var new_views_dict = {$set: {"upvotes": upvotes, "downvotes": downvotes}};
 
@@ -896,7 +889,7 @@ app.post("/questions/:id/upvote", (req, res) => {
             else console.log("Votes updated - DOWNVOTE");
           })
 
-          sodb.collection("questions").updateOne({"id": id}, {$set: {"reputation": new_rep}}, function(e6, r6) {
+          sodb.collection("questions").updateOne({"id": id}, {$set: {"reputation": new_score}}, function(e6, r6) {
             if (e6) throw e6;
             else console.log("Question reputation updated - DOWNVOTE");
           })
@@ -931,6 +924,7 @@ app.post("/answers/:id/upvote", (req, res) => {
 
   if (username == null) {
     console.log("No user logged in");
+    res.send(403, {"status": "error", "error": "No user logged in"});
     return;
   }
 
@@ -948,7 +942,8 @@ app.post("/answers/:id/upvote", (req, res) => {
     var answer = result.answers.find(x => x.id === id); // if not compatible, maybe use lodash here?
     console.log(answer);
 
-    // given our answer, now upvote/downvote it
+    // given our answer, now upvote/downvote it, and change score accordingly
+    var score = answer.score;
     var upvotes = answer.upvotes;
     var downvotes = answer.downvotes;
     // How to update the answer dictionary, then update the array, then update the answers entry with the new array?
@@ -960,8 +955,11 @@ app.post("/answers/:id/upvote", (req, res) => {
       if (upvotes.indexOf(username) >= 0) {
         console.log("User has already upvoted answer.  Undoing upvote for ANSWER.");
         upvotes.splice(upvotes.indexOf(username), 1);
+        var new_ans_score = upvotes.length - downvotes.length;
 
-        var new_ans_rep = upvotes.length - downvotes.length;
+        answer.upvotes = upvotes;
+        answer.downvotes = downvotes;
+        answer.score = new_ans_score;
 
         sodb.collection("verified_users").findOne({"username": a_username}, function(e7, r7) {
           if (e7) throw e7;
@@ -990,8 +988,10 @@ app.post("/answers/:id/upvote", (req, res) => {
 
       answer.upvotes = upvotes;
       answer.downvotes = downvotes;
-      var new_ans_rep = upvotes.length - downvotes.length;
-      console.log("New answer reputation: " + new_ans_rep);
+      var new_ans_score = upvotes.length - downvotes.length;
+      console.log("New answer reputation: " + new_ans_score);
+      answer.score = new_ans_score;
+
       // How to update the answer dictionary, then update the array, then update the answers entry with the new array?
       var answerUpdateIndex = result.answers.findIndex(x => x.id === id);
       if (answerUpdateIndex >= 0) {
@@ -1023,10 +1023,11 @@ app.post("/answers/:id/upvote", (req, res) => {
 
         downvotes.splice(downvotes.indexOf(username), 1);
 
-        var new_rep = upvotes.length - downvotes.length;
+        var new_score = upvotes.length - downvotes.length;
 
         answer.upvotes = upvotes;
         answer.downvotes = downvotes;
+        answer.score = new_score;
 
         // How to update the answer dictionary, then update the array, then update the answers entry with the new array?
         var answerUpdateIndex = result.answers.findIndex(x => x.id === id);
@@ -1060,27 +1061,30 @@ app.post("/answers/:id/upvote", (req, res) => {
 
       downvotes.push(username);
 
-      var new_rep = upvotes.length - downvotes.length;
+      var new_score = upvotes.length - downvotes.length;
+      answer.score = new_score;
+      answer.upvotes = upvotes;
+      answer.downvotes = downvotes;
 
-      var new_views_dict = {$set: {"upvotes": upvotes, "downvotes": downvotes}};
+      // How to update the answer dictionary, then update the array, then update the answers entry with the new array?
+      var answerUpdateIndex = result.answers.findIndex(x => x.id === id);
+      if (answerUpdateIndex >= 0) {
+        result.answers[answerUpdateIndex] = answer;
 
-      sodb.collection("views").updateOne({'id': id}, new_views_dict, function(e5, r5) {
-        if (e5) throw e5;
+        sodb.collection("answers").updateOne({"answers.id": id}, {$set: {"answers" : result.answers}}, function(e9, r9) {
+          if (e9) throw e9;
+          else {
+            console.log("Answers array updated ... hopefully");
+          }
+        })
+      }
 
-        else console.log("Votes updated - DOWNVOTE");
-      })
-
-      sodb.collection("questions").updateOne({"id": id}, {$set: {"reputation": new_rep}}, function(e6, r6) {
-        if (e6) throw e6;
-        else console.log("Question reputation updated - DOWNVOTE");
-      })
-
-      sodb.collection("verified_users").findOne({"username": q_username}, function(e7, r7) {
+      sodb.collection("verified_users").findOne({"username": a_username}, function(e7, r7) {
         if (e7) throw e7;
 
         var old_rep = r7.reputation;
         if (old_rep > 1) {
-          sodb.collection("verified_users").updateOne({"username": q_username}, {$set: {"reputation": old_rep - 1}}, function(e8, r8) {
+          sodb.collection("verified_users").updateOne({"username": a_username}, {$set: {"reputation": old_rep - 1}}, function(e8, r8) {
             if (e8) throw e8;
             console.log("User reputation updated - DOWNVOTE");
           })
@@ -1096,7 +1100,40 @@ app.post("/answers/:id/upvote", (req, res) => {
 })
 
 app.post("/answers/:id/accept", (req, res) => {
+  var id = req.params.id;
 
+  // Check that user is logged in
+  var username = req.session.username;
+
+  if (username == null) {
+    console.log("No user logged in");
+    res.send(403, {"status": "error", "error": "No user logged in - accept answer"});
+    return;
+  }
+  sodb.collection("answers").findOne({"answers.id": id}, {"answers": {$elemMatch: {"id": id}}}, function(err, result) {
+    if (err) throw err;
+    var answer = result.answers.find(x => x.id === id);
+    sodb.collection("questions").findOne({id: result.id}, function(e1, r1) {
+      if (e1) throw e1;
+      else if (r1.user['username'] != req.session.username) {
+        res.send(403, {"status": "error", "error": "You do not have rights to accept an answer"});
+      }
+      else {
+        if (r1.accepted_answer_id == null) {
+          sodb.collection("questions").updateOne({id: result.id}, {$set: {accepted_answer_id: id}}, function(e2, r2) {
+            if (e2) throw e2;
+            else {
+              console.log("Answer accepted!");
+              res.json({"status": "OK"});
+            }
+          })
+        }
+        else {
+          res.send(403, {"status": "error", "error": "There is already an accepted answer for this question"});
+        }
+      }
+    })
+  })
 })
 
 // Takes in FORM DATA, you may need to install something like multer
@@ -1105,6 +1142,7 @@ app.post("/addmedia", (req, res) => {
 })
 
 app.get("/media/:id", (req, res) => {
+  var id = req.params.id;
 
 })
 
