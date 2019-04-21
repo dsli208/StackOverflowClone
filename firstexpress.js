@@ -331,7 +331,11 @@ app.post('/questions/add', (req, res) => {
     // HOW TO MAKE SURE THEIR REPUTATION IS NOT ALWAYS 1???
     sodb.collection("verified_users").findOne({"username": req.session.username}, function(e1, r1) {
       var u_rep = r1.reputation;
-      var obj = {"id": id, "user": {"username": req.session.username, "reputation": u_rep}, "title": req.body.title, "body": req.body.body, "score": 0, "view_count": 1, "answer_count": 0, "timestamp": Date.now() / 1000, "media": null, "tags": req.body.tags, "accepted_answer_id": null};
+      var add_media = null;
+      if (req.body.media != null) {
+        add_media = req.body.media;
+      }
+      var obj = {"id": id, "user": {"username": req.session.username, "reputation": u_rep}, "title": req.body.title, "body": req.body.body, "score": 0, "view_count": 1, "answer_count": 0, "timestamp": Date.now() / 1000, "media": add_media, "tags": req.body.tags, "accepted_answer_id": null};
       sodb.collection("questions").insertOne(obj , function(err, result) {
         if (err) {
           res.json({"status": "error", "error": "Error creating question at this time"});
@@ -452,6 +456,10 @@ app.post('/questions/:id/answers/add', (req, res) => {
       }
       else {
         var answerid = randomstring.generate();
+        var a_media = null;
+        if (req.body.media != null) {
+          a_media = req.body.media;
+        }
         var answerobj = {"id": answerid, "user": uname, "body": req.body.body, "score": 0, "is_accepted": false, "timestamp": Date.now() / 1000, "media": null, "upvotes": [], "downvotes": []};
 
         var answers_arr = result.answers;
