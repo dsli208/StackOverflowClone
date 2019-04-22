@@ -13,6 +13,10 @@ app.use(express.json());
 const ip = require('ip');
 
 // New stuff for Media functionality (M3)
+var fs = require('fs');
+var Grid = require('gridfs');
+
+// Maybe we don't need this?
 var cassandra = require('cassandra-driver');
 var multer  = require('multer');
 var upload = multer({dest: 'uploads/'});
@@ -23,6 +27,8 @@ var MongoClient = require('mongodb').MongoClient;
 var url = "mongodb://localhost:27017/";
 var mongodb;
 var sodb;
+var grid;
+//var gridStore;
 
 var session = require('express-session');
 
@@ -32,13 +38,16 @@ var glob_session;
 var lodash = require('lodash');
 
 // Create DB and it's associated collections
-
 MongoClient.connect(url, function(err, db) {
   if (err) throw err;
   // Create database
   mongodb = db;
   sodb = mongodb.db("stackoverflowclone");
   console.log("Database created!");
+
+  // Set up GridFS for large media/file storage
+  grid = new Grid(db, 'fs');
+  //gridStore = new GridStore(db, fileId, "w", {root:'fs'});
 
   // Create collections for Users, then Verified Users
   sodb.createCollection("users", function(err, res) {
@@ -1159,7 +1168,41 @@ app.post("/answers/:id/accept", (req, res) => {
 
 // Takes in FORM DATA, you may need to install something like multer
 app.post("/addmedia", (req, res) => {
+  // Check that user is logged in
+  var username = req.session.username;
 
+  if (username == null) {
+    console.log("No user logged in");
+    res.send(403, {"status": "error", "error": "No user logged in - accept answer"});
+    return;
+  }
+
+  var content = req.query.content;
+
+  var buffer = new Buffer(content);
+
+  var fileId = new ObjectID();
+  var gridStore = new GridStore(db, fileId, "w", {root:'fs'});
+  gridStore.chunkSize = 1024 * 256;
+
+  gridStore.open(function(err, gridStore) {
+    Step(
+      function writeData() {
+        var group = this.group();
+
+        for(var i = 0; i < 1000000; i += 5000) {
+          gridStore.write(new Buffer(5000), group());
+      }
+    },
+
+      function doneWithWrite() {
+        gridStore.close(function(err, result) {
+          console.log("File has been written to GridFS");
+        });
+      })
+  })
+
+  res.json({"status": "OK", "id": fileId});
 })
 
 app.get("/media/:id", (req, res) => {
