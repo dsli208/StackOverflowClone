@@ -15,20 +15,28 @@ const ip = require('ip');
 // New stuff for Media functionality (M3)
 var fs = require('fs');
 var Grid = require('gridfs');
+var GridStore = require('mongodb').GridStore;
 
-// Maybe we don't need this?
 var cassandra = require('cassandra-driver');
 var multer  = require('multer');
 var upload = multer({dest: 'uploads/'});
 var fs = require('file-system');
 
-//var mongoose = require('mongoose');
-var MongoClient = require('mongodb').MongoClient;
+var Db = require('mongodb').Db,
+    MongoClient = require('mongodb').MongoClient,
+    Server = require('mongodb').Server,
+    ReplSetServers = require('mongodb').ReplSetServers,
+    ObjectID = require('mongodb').ObjectID,
+    Binary = require('mongodb').Binary,
+    GridStore = require('mongodb').GridStore,
+    Code = require('mongodb').Code,
+    assert = require('assert'),
+    GridFSBucket = require('mongodb').GridFSBucket;
 var url = "mongodb://localhost:27017/";
 var mongodb;
 var sodb;
 var grid;
-//var gridStore;
+//var gridfs_bucket;
 
 var session = require('express-session');
 
@@ -47,7 +55,7 @@ MongoClient.connect(url, function(err, db) {
 
   // Set up GridFS for large media/file storage
   grid = new Grid(db, 'fs');
-  //gridStore = new GridStore(db, fileId, "w", {root:'fs'});
+  //gridfs_bucket = new require('mongodb').GridFSBucket(db);
 
   // Create collections for Users, then Verified Users
   sodb.createCollection("users", function(err, res) {
@@ -86,6 +94,12 @@ MongoClient.connect(url, function(err, db) {
     if (err) throw err;
     console.log("Created answer list");
   })
+});
+
+const cassandra_client = new cassandra.Client({
+  contactPoints: ['127.0.0.1'],
+  localDataCenter: 'datacenter1',
+  keyspace: 'so_clone'
 });
 
 // Setup email createServer
@@ -152,13 +166,13 @@ app.post('/adduser', (req, res) => {
   console.log("Add User POST Request");
   // Missing key cases
   if (req.body.username == null) {
-    res.json({"status": "error", "error": "no username found"})
+    res.send(403, {"status": "error", "error": "no username found"});
   }
   else if (req.body.password == null) {
-    res.json({"status": "error", "error": "no password found"})
+    res.send(403, {"status": "error", "error": "no password found"});
   }
   else if (req.body.email == null) {
-    res.json({"status": "error", "error": "no email found"})
+    res.send(403, {"status": "error", "error": "no email found"});
   }
 
   // Every key is in and has a value so ...
@@ -208,10 +222,10 @@ app.post('/adduser', (req, res) => {
 
 app.post('/verify', (req, res) => {
   if (req.body.email == null) {
-    res.json({"status": "error", "error": "no email found"});
+    res.send(403, {"status": "error", "error": "no email found"});
   }
   else if (req.body.key == null) {
-    res.json({"status": "error", "error": "no verification key found"});
+    res.send(403, {"status": "error", "error": "no verification key found"});
   }
   // All forms filled
   else {
@@ -249,16 +263,21 @@ app.post('/verify', (req, res) => {
       // Since we have verified the user, add them to the verified users colelction so that they can log in
           sodb.collection("verified_users").insertOne({username:username, password:password, email: email, reputation: 1}).then(function(err, result) {
             console.log("1 verified user added to VERIFIED USERS collection");
-            res.json(retdict);
+            if (retdict['status'] == 'OK') {
+              res.json(retdict);
+            }
+            else {
+              res.send(403, retdict);
+            }
           }).catch(function(err) {
             console.log("Email not found error");
             retdict = {"status": "error", "error": "Email not found"};
-            res.json(retdict);
+            res.send(403, retdict);
           })
             }).catch(function(err) {
               console.log("error");
               retdict = {"status": "error", "error": "Error"};
-              res.json(retdict);
+              res.send(403, retdict);
             })
 
         }
@@ -269,10 +288,10 @@ app.post('/verify', (req, res) => {
 
 app.post('/login', (req, res) => {
   if (req.body.username == null) {
-    res.json({"status": "error", "error": "no username found"});
+    res.send(403, {"status": "error", "error": "no username found"});
   }
   else if (req.body.password == null) {
-    res.json({"status": "error", "error": "no password found"});
+    res.send(403, {"status": "error", "error": "no password found"});
   }
   else {
     var username = req.body.username;
@@ -283,15 +302,15 @@ app.post('/login', (req, res) => {
     sodb.collection("verified_users").findOne({"username": username}, function(err, result) {
       if (err) {
         retdict = {"status": "error", "error": "User is not verified"};
-        res.json(retdict);
+        res.send(403, retdict);
       }
       else if (result == null) {
         retdict = {"status":"error", "error": "User not verified or does not exist"};
-        res.json(retdict);
+        res.send(403, retdict);
       }
       else if (result.password !== password) {
         retdict = {"status": "error", "error": "Username and password do not match up."};
-        res.json(retdict);
+        res.send(403, retdict);
       }
       else {
         console.log(result.username);
@@ -323,16 +342,16 @@ app.post('/questions/add', (req, res) => {
   console.log(req.session);
   // First, check that a user is logged in
   if (req.session.username == null) {
-    res.json({"status": "error", "error": "No user logged in"});
+    res.send(403, {"status": "error", "error": "No user logged in"});
   }
   else if (req.body.title == null) {
-    res.json({"status": "error", "error": "No title for the question"});
+    res.send(403, {"status": "error", "error": "No title for the question"});
   }
   else if (req.body.body == null) {
-    res.json({"status": "error", "error": "The question needs a body"});
+    res.send(403, {"status": "error", "error": "The question needs a body"});
   }
   else if (req.body.tags == null) {
-    res.json({"status": "error", "error": "The question needs at least one tag"});
+    res.send(403, {"status": "error", "error": "The question needs at least one tag"});
   }
   else {
     var id = randomstring.generate();
@@ -347,7 +366,7 @@ app.post('/questions/add', (req, res) => {
       var obj = {"id": id, "user": {"username": req.session.username, "reputation": u_rep}, "title": req.body.title, "body": req.body.body, "score": 0, "view_count": 1, "answer_count": 0, "timestamp": Date.now() / 1000, "media": add_media, "tags": req.body.tags, "accepted_answer_id": null};
       sodb.collection("questions").insertOne(obj , function(err, result) {
         if (err) {
-          res.json({"status": "error", "error": "Error creating question at this time"});
+          res.send(403, {"status": "error", "error": "Error creating question at this time"});
         }
         else {
           console.log("Question successfully inserted into Questions collection");
@@ -373,11 +392,11 @@ app.get('/questions/:id', (req, res) => {
   sodb.collection("questions").findOne({"id": id}, function(err, result) {
     if (err) {
       console.log("Error");
-      res.json({"status": "error", "error": "Error"});
+      res.send(403, {"status": "error", "error": "Error"});
     }
     else if (result == null) {
       console.log("Question not found");
-      res.json({"status": "error", "error": "Question not found"});
+      res.send(403, {"status": "error", "error": "Question not found"});
     }
     else {
       console.log("Question found");
@@ -424,17 +443,14 @@ app.get('/questions/:id', (req, res) => {
 
         }
       })}).catch(function(e5) {
-        res.json({"status": "error", "error": "Error e5"});
+        res.send(403, {"status": "error", "error": "Error e5"});
       }).catch(function(err2) {
-        res.json({"status": "error", "error": "Error err2"});
+        res.send(403, {"status": "error", "error": "Error err2"});
       }).catch(function(err3) {
-        res.json({"status": "error", "error": "Error err3"});
+        res.send(403, {"status": "error", "error": "Error err3"});
       })
-
-      //res.json({"status": "OK", "question": result});
     }
   })
-
 })
 
 app.post('/questions/:id/answers/add', (req, res) => {
@@ -445,11 +461,11 @@ app.post('/questions/:id/answers/add', (req, res) => {
   // First, check that a user is logged in
   if (req.session.username == null) {
     console.log("No user logged in at POST 1 ");
-    res.json({"status": "error", "error": "No user logged in"});
+    res.send(403, {"status": "error", "error": "No user logged in"});
   }
   else if (req.body.body == null) {
     console.log("NO BODY");
-    res.json({"status": "error", "error": "The answer needs a body"});
+    res.send(403, {"status": "error", "error": "The answer needs a body"});
   }
   else {
     uname = req.session.username;
@@ -457,11 +473,11 @@ app.post('/questions/:id/answers/add', (req, res) => {
     sodb.collection("answers").findOne({"id": id}, function(err, result) {
       if (err) {
         console.log("Error");
-        res.json({"status": "error", "error": "Error"});
+        res.send(403, {"status": "error", "error": "Error"});
       }
       else if (result == null) {
         console.log("Nonexistent question");
-        res.json({"status": "error", "error": "A question with this ID does not exist."});
+        res.send(403, {"status": "error", "error": "A question with this ID does not exist."});
       }
       else {
         var answerid = randomstring.generate();
@@ -503,11 +519,11 @@ app.get('/questions/:id/answers', (req, res) => {
   sodb.collection("answers").findOne({"id": id}, function(err, result) {
     if (err) {
       console.log("Error");
-      res.json({"status": "error", "error": "Error"});
+      res.send(403, {"status": "error", "error": "Error"});
     }
     else if (result == null) {
       console.log("Nothing found");
-      res.json({"status": "error", "error": "No such question exists with this ID"});
+      res.send(403, {"status": "error", "error": "No such question exists with this ID"});
     }
     else {
       console.log(result.answers);
@@ -623,13 +639,13 @@ app.post('/search', (req, res) => {
         }
         else {
           console.log("Error");
-          res.json({"status": "error", "error": "Error"});
+          res.send(403, {"status": "error", "error": "Error"});
         }
       }
     })
   }
   else {
-    res.json({"status": "error", "error": "Error: No request body"});
+    res.send(403, {"status": "error", "error": "Error: No request body"});
   }
 })
 
@@ -668,16 +684,16 @@ app.delete('/questions/:id', (req, res) => {
 
 app.get('/user/:username', (req, res) => {
   if (req.params.username == null) {
-    res.json({"status": "error", "error": "No username given"});
+    res.send(403, {"status": "error", "error": "No username given"});
   }
   var username = req.params.username;
 
   sodb.collection("verified_users").findOne({username: username}, function(err, result) {
     if (err) {
-      res.json({"status": "error", "error": "total error"});
+      res.send(403, {"status": "error", "error": "total error"});
     }
     else if (result == null) {
-      res.json({"status": "error", "error": "User does not exist"});
+      res.send(403, {"status": "error", "error": "User does not exist"});
     }
     else {
       console.log("user found");
@@ -749,7 +765,7 @@ app.post("/questions/:id/upvote", (req, res) => {
 
   if (username == null) {
     console.log("No user logged in");
-    res.json({"status": "error", "error": "No user logged in"});
+    res.send(403, {"status": "error", "error": "No user logged in"});
     return;
   }
 
@@ -1167,7 +1183,7 @@ app.post("/answers/:id/accept", (req, res) => {
 })
 
 // Takes in FORM DATA, you may need to install something like multer
-app.post("/addmedia", (req, res) => {
+app.post("/addmedia", upload.single('content'), (req, res) => {
   // Check that user is logged in
   var username = req.session.username;
 
@@ -1179,28 +1195,11 @@ app.post("/addmedia", (req, res) => {
 
   var content = req.query.content;
 
-  var buffer = new Buffer(content);
+  var buffer = req.file.buffer;
 
   var fileId = new ObjectID();
-  var gridStore = new GridStore(db, fileId, "w", {root:'fs'});
-  gridStore.chunkSize = 1024 * 256;
 
-  gridStore.open(function(err, gridStore) {
-    Step(
-      function writeData() {
-        var group = this.group();
 
-        for(var i = 0; i < 1000000; i += 5000) {
-          gridStore.write(new Buffer(5000), group());
-      }
-    },
-
-      function doneWithWrite() {
-        gridStore.close(function(err, result) {
-          console.log("File has been written to GridFS");
-        });
-      })
-  })
 
   res.json({"status": "OK", "id": fileId});
 })
