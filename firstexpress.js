@@ -117,10 +117,10 @@ nodemailer.createTestAccount((err, account) => {
         //service: 'gmail',
         port: 587,
         secure: false // true for 465, false for other ports. For TLS use port 465
-        /*auth: {
-            user: "friedcomputerz208@gmail.com", // generated ethereal user
-            pass: "qasmltrjzjsmfxui" // generated ethereal password
-        }*/
+        auth: {
+            user: "lennie.lebsack46@ethereal.email", // generated ethereal user
+            pass: "6gsxcCYSwzY9jP5AeU" // generated ethereal password
+        }
     };
 
     global.transporter = nodemailer.createTransport(smtpConfig);
