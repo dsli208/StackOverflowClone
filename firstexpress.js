@@ -1221,7 +1221,7 @@ app.post("/addmedia", upload.single('content'), (req, res) => {
 
     const query = 'INSERT INTO imgs (id, content, filename) VALUES (?, ?, ?)';
     const params = [fileId, content, req.file['filename']];
-    client.execute(query, params, { prepare: true }, function (err) {
+    cassandra_client.execute(query, params, { prepare: true }, function (err) {
       console.log("Hopeful blob content being added");
       console.log(content);
       console.log(err); // if no error, undefined
@@ -1237,7 +1237,7 @@ app.get("/media/:id", (req, res) => {
 
   const query = 'SELECT contents FROM imgs WHERE id = ?';
   const params = [id];
-  client.execute(query, params, {prepare: true}, function (err, result) {
+  cassandra_client.execute(query, params, {prepare: true}, function (err, result) {
     console.log("Executing retrieve");
     res.contentType(req.query.filename.split(".")[1]);
 		res.send(result.rows[0].contents);
