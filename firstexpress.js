@@ -1235,7 +1235,7 @@ app.post("/addmedia", upload.single('content'), (req, res) => {
 app.get("/media/:id", (req, res) => {
   var id = req.params.id;
 
-  const query = 'SELECT contents FROM media WHERE id = ?';
+  const query = "SELECT content FROM media WHERE id = '?'";
   const params = [id];
   cassandra_client.execute(query, params, {prepare: true}, function (err, result) {
     console.log("Executing retrieve");
