@@ -1219,7 +1219,7 @@ app.post("/addmedia", upload.single('content'), (req, res) => {
 
     console.log(content);
 
-    const query = 'INSERT INTO imgs (id, content, filename) VALUES (?, ?, ?)';
+    const query = 'INSERT INTO media (id, content, filename) VALUES (?, ?, ?)';
     const params = [fileId, content, req.file['filename']];
     cassandra_client.execute(query, params, { prepare: true }, function (err) {
       console.log("Hopeful blob content being added");
@@ -1235,11 +1235,12 @@ app.post("/addmedia", upload.single('content'), (req, res) => {
 app.get("/media/:id", (req, res) => {
   var id = req.params.id;
 
-  const query = 'SELECT contents FROM imgs WHERE id = ?';
+  const query = 'SELECT contents FROM media WHERE id = ?';
   const params = [id];
   cassandra_client.execute(query, params, {prepare: true}, function (err, result) {
     console.log("Executing retrieve");
     //res.contentType(req.query.filename.split(".")[1]);
+    console.log(result);
 		res.send(result.rows[0].contents);
   });
 })
