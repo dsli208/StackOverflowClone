@@ -149,7 +149,7 @@ app.use(function (req, res, next) {
 
 cassandra_client.connect(function (err) {
   console.log("Connected to Cassandra DB");
-  console.log(Object.keys(client.metadata.keyspaces));
+  console.log(Object.keys(cassandra_client.metadata.keyspaces));
 });
 
 // Milestone 1
