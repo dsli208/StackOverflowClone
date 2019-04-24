@@ -1239,7 +1239,7 @@ app.get("/media/:id", (req, res) => {
   const params = [id];
   cassandra_client.execute(query, params, {prepare: true}, function (err, result) {
     console.log("Executing retrieve");
-    res.contentType(req.query.filename.split(".")[1]);
+    //res.contentType(req.query.filename.split(".")[1]);
 		res.send(result.rows[0].contents);
   });
 })
