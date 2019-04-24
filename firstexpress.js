@@ -113,14 +113,12 @@ nodemailer.createTestAccount((err, account) => {
 
     //Step: 1 Create transporter
     let smtpConfig = {
-        host: 'smtp.ethereal.email',
-        //service: 'gmail',
-        port: 587,
-        secure: false, // true for 465, false for other ports. For TLS use port 465
-        auth: {
-            user: "lennie.lebsack46@ethereal.email", // generated ethereal user
-            pass: "6gsxcCYSwzY9jP5AeU" // generated ethereal password
-        }
+      host: 'smtp.ethereal.email',
+      port: 587,
+      auth: {
+          user: 'lennie.lebsack46@ethereal.email',
+          pass: '6gsxcCYSwzY9jP5AeU'
+      }
     };
 
     global.transporter = nodemailer.createTransport(smtpConfig);
@@ -207,7 +205,15 @@ app.post('/adduser', (req, res) => {
 
     //Step: 3 Send mail using created transport
     console.log("Sending email");
-    global.transporter.sendMail(mailOptions, function(error, info){
+
+    // Temporary patch fix
+    let transporter = nodemailer.createTransport({
+      host: 'localhost',
+      port: 25,
+      tls: {rejectUnauthorized: false}
+    })
+    
+    transporter.sendMail(mailOptions, function(error, info){
       if (error) {
         console.log("Error message below");
         console.log(error);
