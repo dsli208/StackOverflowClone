@@ -199,7 +199,7 @@ app.post('/adduser', (req, res) => {
 
     //Step: 2 Setup message options
     var mailOptions = {
-      from: 'friedcomputerz208@gmail.com',
+      from: 'lennie.lebsack46@ethereal.email',
       to: email,
       subject: 'Verification Key',
       text: 'validation key: <' + key + '>'
