@@ -113,7 +113,7 @@ nodemailer.createTestAccount((err, account) => {
 
     //Step: 1 Create transporter
     let smtpConfig = {
-        host: 'localhost',
+        host: 'smtp.ethereal.email',
         //service: 'gmail',
         port: 587,
         secure: false, // true for 465, false for other ports. For TLS use port 465
