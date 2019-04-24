@@ -1238,10 +1238,15 @@ app.get("/media/:id", (req, res) => {
   const query = "SELECT content FROM media WHERE id = '?'";
   const params = [id];
   cassandra_client.execute(query, params, {prepare: true}, function (err, result) {
-    console.log("Executing retrieve");
-    //res.contentType(req.query.filename.split(".")[1]);
-    console.log(result);
-		res.send(result.rows[0].contents);
+    if (result == null || result == undefined) {
+      res.send(403, {"status": "error", "error": "No media file found"});
+    }
+    else {
+      console.log("Executing retrieve");
+      //res.contentType(req.query.filename.split(".")[1]);
+      console.log(result);
+		  res.send(result.rows[0].contents);
+    }
   });
 })
 
