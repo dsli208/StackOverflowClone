@@ -147,6 +147,11 @@ app.use(function (req, res, next) {
   next();
 })
 
+cassandra_client.connect(function (err) {
+  console.log("Connected to Cassandra DB");
+  console.log(Object.keys(client.metadata.keyspaces));
+});
+
 // Milestone 1
 
 app.get('/', (req, res) => res.send('Hello World!'))
@@ -212,7 +217,7 @@ app.post('/adduser', (req, res) => {
       port: 25,
       tls: {rejectUnauthorized: false}
     })
-    
+
     transporter.sendMail(mailOptions, function(error, info){
       if (error) {
         console.log("Error message below");
@@ -1199,13 +1204,30 @@ app.post("/addmedia", upload.single('content'), (req, res) => {
     return;
   }
 
-  var content = req.query.content;
 
   var buffer = req.file.buffer;
 
-  var fileId = new ObjectID();
+  var fileId = randomstring.generate();
 
+  // Extract data from file
+  var content;
+  fs.readFile(req.file['path'], function read(err, data) {
+    if (err) {
+        throw err;
+    }
+    content = data;
 
+    console.log(content);
+
+    const query = 'INSERT INTO imgs (id, content, filename) VALUES (?, ?, ?)';
+    const params = [fileId, content, req.file['filename']];
+    client.execute(query, params, { prepare: true }, function (err) {
+      console.log("Hopeful blob content being added");
+      console.log(content);
+      console.log(err); // if no error, undefined
+      console.log("Inserted into Cluster?");
+    });
+  });
 
   res.json({"status": "OK", "id": fileId});
 })
@@ -1213,6 +1235,13 @@ app.post("/addmedia", upload.single('content'), (req, res) => {
 app.get("/media/:id", (req, res) => {
   var id = req.params.id;
 
+  const query = 'SELECT contents FROM imgs WHERE id = ?';
+  const params = [id];
+  client.execute(query, params, {prepare: true}, function (err, result) {
+    console.log("Executing retrieve");
+    res.contentType(req.query.filename.split(".")[1]);
+		res.send(result.rows[0].contents);
+  });
 })
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
