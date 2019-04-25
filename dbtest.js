@@ -16,7 +16,7 @@ var Db = require('mongodb').Db,
     GridFSBucket = require('mongodb').GridFSBucket;
 // public "floating" ip 130.245.169.172, private ip 192.168.122.18
 
-var url = "mongodb://130.245.169.172:27017/";
+var url = "mongodb://192.168.122.18:27017/";
 var mongodb;
 var remotedb;
 var grid;
