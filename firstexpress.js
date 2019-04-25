@@ -12,6 +12,12 @@ app.use(express.json());
 
 const ip = require('ip');
 const redis = require('redis');
+const redisClient = redis.createClient();
+const redisStore = require('connect-redis')(session);
+
+redisClient.on('error', (err) => {
+  console.log('Redis error: ', err);
+});
 
 // New stuff for Media functionality (M3)
 var fs = require('fs');
