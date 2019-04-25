@@ -13,7 +13,7 @@ app.use(express.json());
 const ip = require('ip');
 const redis = require('redis');
 const redisClient = redis.createClient();
-//const redisStore = require('connect-redis')(session);
+var redisStore = require('connect-redis')(session);
 
 redisClient.on('error', (err) => {
   console.log('Redis error: ', err);
