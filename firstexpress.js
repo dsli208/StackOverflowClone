@@ -331,7 +331,7 @@ app.post('/login', (req, res) => {
         glob_username = username;
         req.session.username = username;
         glob_session = req.session;
-        //req.session.save();
+        req.session.save();
 
         res.json(retdict);
       }
