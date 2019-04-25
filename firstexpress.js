@@ -32,7 +32,7 @@ var Db = require('mongodb').Db,
     Code = require('mongodb').Code,
     assert = require('assert'),
     GridFSBucket = require('mongodb').GridFSBucket;
-var url = "mongodb://130.245.170.201:27017/";
+var url = "mongodb://130.245.169.172:27017/";
 var mongodb;
 var sodb;
 var grid;
