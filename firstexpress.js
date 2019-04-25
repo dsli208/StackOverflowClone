@@ -97,7 +97,7 @@ MongoClient.connect(url, function(err, db) {
 });
 
 const cassandra_client = new cassandra.Client({
-  contactPoints: ['127.0.0.1'],
+  contactPoints: ['130.245.170.201'],
   localDataCenter: 'datacenter1',
   keyspace: 'so_clone'
 });
