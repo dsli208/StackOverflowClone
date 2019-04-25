@@ -130,6 +130,7 @@ nodemailer.createTestAccount((err, account) => {
 // init
 app.use(session({
   secret: 'keyboard cat',
+  store: new redisStore({ host: 'localhost', port: 6379, client: client}),
   resave: false,
   saveUninitialized: true
 }))
@@ -181,15 +182,15 @@ app.post('/adduser', (req, res) => {
 
   // Every key is in and has a value so ...
   else {
-    console.log("All fields found");
+    //console.log("All fields found");
     // Insert into USERS Database
     var username = req.body.username;
     var password = req.body.password;
-    console.log(username + " " + password);
-    console.log("Connecting to DB ...");
+    //console.log(username + " " + password);
+    //console.log("Connecting to DB ...");
 
     // Send key to the given email
-    console.log("Generating key");
+    //console.log("Generating key");
     var key = "abracadabra";
     var email = req.body.email;
     console.log(email);
@@ -197,7 +198,7 @@ app.post('/adduser', (req, res) => {
       var myobj = { username: username, email: email, password: password, key: key};
       sodb.collection("users").insertOne(myobj, function(err, res) {
         if (err) throw err;
-        console.log("1 document inserted into USERS collection");
+        //console.log("1 document inserted into USERS collection");
         //db.close();
       });
 
@@ -210,7 +211,7 @@ app.post('/adduser', (req, res) => {
     };
 
     //Step: 3 Send mail using created transport
-    console.log("Sending email");
+    //console.log("Sending email");
 
     // Temporary patch fix
     let transporter = nodemailer.createTransport({
@@ -221,8 +222,8 @@ app.post('/adduser', (req, res) => {
 
     transporter.sendMail(mailOptions, function(error, info){
       if (error) {
-        console.log("Error message below");
-        console.log(error);
+        //console.log("Error message below");
+        //console.log(error);
       } else {
         console.log('Email sent: ' + info.response);
       }
@@ -248,8 +249,8 @@ app.post('/verify', (req, res) => {
     var username = "", password = "";
 
     // Find the user in the database, then make sure email matches the Key
-    console.log("Connecting to DB...");
-    console.log(retdict);
+    //console.log("Connecting to DB...");
+    //console.log(retdict);
 
     // Get user email and check it matches up with the key sent to that email
     sodb.collection("users").findOne({email: email}).then(function(result) {
@@ -258,23 +259,23 @@ app.post('/verify', (req, res) => {
           console.log("Null result");
 
           retdict = {"status": "error", "error": "User not found with this key/email"};
-          console.log(retdict);
+          //console.log(retdict);
           throw err;
       }
       else if (result.key != key) {
-          console.log(result);
-          console.log(result.key);
-          console.log("Key does not match up");
+          //console.log(result);
+          //console.log(result.key);
+          //console.log("Key does not match up");
           retdict = {"status": "error", "error": "Email and key do not match up."};
           throw err;
       }
       else { console.log(result.email);username = result.username; password = result.password;}
     }).then(function() {
-      console.log("Connected to DB for insert");
+      //console.log("Connected to DB for insert");
 
       // Since we have verified the user, add them to the verified users colelction so that they can log in
           sodb.collection("verified_users").insertOne({username:username, password:password, email: email, reputation: 1}).then(function(err, result) {
-            console.log("1 verified user added to VERIFIED USERS collection");
+            //console.log("1 verified user added to VERIFIED USERS collection");
             if (retdict['status'] == 'OK') {
               res.json(retdict);
             }
@@ -282,19 +283,19 @@ app.post('/verify', (req, res) => {
               res.send(403, retdict);
             }
           }).catch(function(err) {
-            console.log("Email not found error");
+            //console.log("Email not found error");
             retdict = {"status": "error", "error": "Email not found"};
             res.send(403, retdict);
           })
             }).catch(function(err) {
-              console.log("error");
+              //console.log("error");
               retdict = {"status": "error", "error": "Error"};
               res.send(403, retdict);
             })
 
         }
         // User from users database now verified and added to verified_users Database
-        console.log("InsertOne DB Connection closed");
+        //console.log("InsertOne DB Connection closed");
 })
 
 
@@ -352,7 +353,7 @@ app.post('/logout', (req, res) => {
 
 app.post('/questions/add', (req, res) => {
   // Modify for handling media array
-  //console.log("Session details:");
+  console.log("Session details for adding question:");
   console.log(req.session);
   // First, check that a user is logged in
   if (req.session.username == null) {
@@ -468,6 +469,7 @@ app.get('/questions/:id', (req, res) => {
 })
 
 app.post('/questions/:id/answers/add', (req, res) => {
+  console.log("Session for add answer");
   var id = req.params.id;
   console.log(req.session);
   var uname = null;
