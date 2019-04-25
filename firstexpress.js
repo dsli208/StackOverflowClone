@@ -135,7 +135,7 @@ nodemailer.createTestAccount((err, account) => {
 // init
 app.use(session({
   secret: 'keyboard cat',
-  store: new redisStore({ host: 'localhost', port: 6379, client: redisClient}),
+  store: new redisStore({ host: '192.168.122.26', port: 6379, client: redisClient}),
   resave: false,
   saveUninitialized: true
 }))
