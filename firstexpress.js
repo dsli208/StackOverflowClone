@@ -11,6 +11,7 @@ app.use(bodyParser.json());
 app.use(express.json());
 
 const ip = require('ip');
+const redis = require('redis');
 
 // New stuff for Media functionality (M3)
 var fs = require('fs');
@@ -332,6 +333,8 @@ app.post('/login', (req, res) => {
         req.session.username = username;
         glob_session = req.session;
         req.session.save();
+
+        console.log(req.session);
 
         res.json(retdict);
       }
