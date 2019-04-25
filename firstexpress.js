@@ -6,6 +6,7 @@ const port = 3000;
 const randomstring = require('randomstring');
 const nodemailer = require('nodemailer');
 var NodeSession = require('node-session');
+var session = require('express-session');
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.use(express.json());
@@ -13,7 +14,7 @@ app.use(express.json());
 const ip = require('ip');
 const redis = require('redis');
 const redisClient = redis.createClient();
-//var redisStore = require('connect-redis')(session);
+var redisStore = require('connect-redis')(session);
 
 redisClient.on('error', (err) => {
   console.log('Redis error: ', err);
@@ -44,8 +45,6 @@ var mongodb;
 var sodb;
 var grid;
 //var gridfs_bucket;
-
-var session = require('express-session');
 
 var glob_username;
 var glob_session;
@@ -136,7 +135,7 @@ nodemailer.createTestAccount((err, account) => {
 // init
 app.use(session({
   secret: 'keyboard cat',
-  //store: new redisStore({ host: 'localhost', port: 6379, client: client}),
+  store: new redisStore({ host: 'localhost', port: 6379, client: redisClient}),
   resave: false,
   saveUninitialized: true
 }))
@@ -1214,7 +1213,6 @@ app.post("/addmedia", upload.single('content'), (req, res) => {
     res.send(403, {"status": "error", "error": "No user logged in - accept answer"});
     return;
   }
-
 
   var buffer = req.file.buffer;
 
