@@ -1244,6 +1244,7 @@ app.get("/media/:id", (req, res) => {
     else {
       console.log("Executing retrieve");
       //res.contentType(req.query.filename.split(".")[1]);
+      console.log("Media result");
       console.log(result);
 		  res.send(result.rows[0].contents);
     }
