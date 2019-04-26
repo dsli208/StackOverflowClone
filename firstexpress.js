@@ -1246,44 +1246,45 @@ app.post("/answers/:id/accept", (req, res) => {
 // Takes in FORM DATA, you may need to install something like multer
 app.post("/addmedia", upload.single('content'), (req, res) => {
   // Check that user is logged in
-  var decoded = jwt.verify(req.cookies.access_token, 'so_clone');
-  if (decoded == null) {
-    res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
-    return;
-  }
-  var username = decoded.username;
-
-  if (username == null) {
-    console.log("No user logged in");
-    res.send(403, {"status": "error", "error": "No user logged in - accept answer"});
-    return;
-  }
-
-  var buffer = req.file.buffer;
-
-  var fileId = randomstring.generate();
-
-  // Extract data from file
-  var content;
-  fs.readFile(req.file['path'], function read(err, data) {
-    if (err) {
-        throw err;
+  jwt.verify(req.cookies.access_token, 'so_clone', function(err, decoded) {
+    if (err || decoded == null) {
+      res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
+      return;
     }
-    content = data;
+    var username = decoded.username;
 
-    console.log(content);
+    if (username == null) {
+      console.log("No user logged in");
+      res.send(403, {"status": "error", "error": "No user logged in - add media"});
+      return;
+    }
 
-    const query = 'INSERT INTO media (id, content, filename) VALUES (?, ?, ?)';
-    const params = [fileId, content, req.file['filename']];
-    cassandra_client.execute(query, params, { prepare: true }, function (err) {
-      console.log("Hopeful blob content being added");
+    var buffer = req.file.buffer;
+
+    var fileId = randomstring.generate();
+
+    // Extract data from file
+    var content;
+    fs.readFile(req.file['path'], function read(err, data) {
+      if (err) {
+          throw err;
+      }
+      content = data;
+
       console.log(content);
-      console.log(err); // if no error, undefined
-      console.log("Inserted into Cluster?");
-    });
-  });
 
-  res.json({"status": "OK", "id": fileId});
+      const query = 'INSERT INTO media (id, content, filename) VALUES (?, ?, ?)';
+      const params = [fileId, content, req.file['filename']];
+      cassandra_client.execute(query, params, { prepare: true }, function (err) {
+        console.log("Hopeful blob content being added");
+        console.log(content);
+        console.log(err); // if no error, undefined
+        console.log("Inserted into Cluster?");
+      });
+    });
+
+    res.json({"status": "OK", "id": fileId});
+  })
 })
 
 app.get("/media/:id", (req, res) => {
