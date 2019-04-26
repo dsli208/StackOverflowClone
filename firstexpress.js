@@ -16,6 +16,8 @@ app.use(express.json());
 
 const ip = require('ip');
 const MongoStore = require('connect-mongo')(session);
+const cookie = require('cookie');
+const jwt = require('jsonwebtoken');
 
 // New stuff for Media functionality (M3)
 var fs = require('fs');
@@ -333,6 +335,8 @@ app.post('/login', (req, res) => {
         glob_session = req.session;
         req.session.save();
 
+        res.cookie('username', username);
+
         console.log(req.session);
 
         res.json(retdict);
@@ -353,8 +357,9 @@ app.post('/questions/add', (req, res) => {
   // Modify for handling media array
   console.log("Session details for adding question:");
   console.log(req.session);
+  console.log(req.cookies);
   // First, check that a user is logged in
-  if (req.session.username == null) {
+  if (req.cookies.username == null) {
     res.send(403, {"status": "error", "error": "No user logged in"});
   }
   else if (req.body.title == null) {
@@ -419,7 +424,7 @@ app.get('/questions/:id', (req, res) => {
       // First determine if user is new
       var username;
 
-      if (req.session.username == null) {
+      if (req.cookies.username == null) {
           username = ip.address();
       }
       else {
@@ -473,7 +478,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
   var uname = null;
 
   // First, check that a user is logged in
-  if (req.session.username == null) {
+  if (req.cookies.username == null) {
     console.log("No user logged in at POST 1 ");
     res.send(403, {"status": "error", "error": "No user logged in"});
   }
@@ -482,7 +487,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
     res.send(403, {"status": "error", "error": "The answer needs a body"});
   }
   else {
-    uname = req.session.username;
+    uname = req.cookies.username;
     console.log(uname);
     sodb.collection("answers").findOne({"id": id}, function(err, result) {
       if (err) {
@@ -666,7 +671,7 @@ app.post('/search', (req, res) => {
 // Milestone 2 new functions
 
 app.delete('/questions/:id', (req, res) => {
-  if (req.session.username == null) {
+  if (req.cookies.username == null) {
     res.send(403,"You do not have rights to do this!");
   }
   else {
@@ -674,7 +679,7 @@ app.delete('/questions/:id', (req, res) => {
 
     sodb.collection("questions").findOne({id: id}, function(err, result) {
       if (err) throw err;
-      if (result.user['username'] != req.session.username) {
+      if (result.user['username'] != req.cookies.username) {
         res.send(403,"You do not have rights to do this!");
         //res.json({"status": "error", "error": "Only the author can delete their question"});
       }
@@ -775,7 +780,7 @@ app.get('/user/:username/answers', (req, res) => {
 // Milestone 3 new functionality
 app.post("/questions/:id/upvote", (req, res) => {
   var id = req.params.id;
-  var username = req.session.username;
+  var username = req.cookies.username;
 
   if (username == null) {
     console.log("No user logged in");
@@ -980,7 +985,7 @@ app.post("/answers/:id/upvote", (req, res) => {
   var id = req.params.id;
 
   // Check that user is logged in
-  var username = req.session.username;
+  var username = req.cookies.username;
 
   if (username == null) {
     console.log("No user logged in");
@@ -1163,7 +1168,7 @@ app.post("/answers/:id/accept", (req, res) => {
   var id = req.params.id;
 
   // Check that user is logged in
-  var username = req.session.username;
+  var username = req.cookies.username;
 
   if (username == null) {
     console.log("No user logged in");
@@ -1199,7 +1204,7 @@ app.post("/answers/:id/accept", (req, res) => {
 // Takes in FORM DATA, you may need to install something like multer
 app.post("/addmedia", upload.single('content'), (req, res) => {
   // Check that user is logged in
-  var username = req.session.username;
+  var username = req.cookies.username;
 
   if (username == null) {
     console.log("No user logged in");
