@@ -335,7 +335,8 @@ app.post('/login', (req, res) => {
         glob_session = req.session;
         req.session.save();
 
-        res.cookie('username', username);
+        var token = jwt.sign({username: username}, 'so_clone');
+        res.cookie('auth_token', token);
 
         console.log(req.session);
 
@@ -348,7 +349,7 @@ app.post('/login', (req, res) => {
 app.post('/logout', (req, res) => {
   console.log("Logout called");
   req.session.username = null;
-  res.clearCookie("username"); // With cookies, how to change to their equivalent?
+  res.clearCookie("token"); // With cookies, how to change to their equivalent?
   user = null;
 
   res.json({"status": "OK"});
@@ -360,48 +361,54 @@ app.post('/questions/add', (req, res) => {
   console.log(req.session);
   console.log(req.cookies);
   // First, check that a user is logged in
-  if (req.cookies.username == null) {
+  /*if (req.cookies.username == null) {
     res.send(403, {"status": "error", "error": "No user logged in"});
-  }
-  else if (req.body.title == null) {
-    res.send(403, {"status": "error", "error": "No title for the question"});
-  }
-  else if (req.body.body == null) {
-    res.send(403, {"status": "error", "error": "The question needs a body"});
-  }
-  else if (req.body.tags == null) {
-    res.send(403, {"status": "error", "error": "The question needs at least one tag"});
-  }
-  else {
-    var id = randomstring.generate();
+  }*/
+  jwt.verify(req.cookies.token, 'so_clone', function(err, decoded) {
+    if (decoded.username == null) {
+      res.send(403, {"status": "error", "error": "No user logged in"});
+    }
+    else if (req.body.title == null) {
+      res.send(403, {"status": "error", "error": "No title for the question"});
+    }
+    else if (req.body.body == null) {
+      res.send(403, {"status": "error", "error": "The question needs a body"});
+    }
+    else if (req.body.tags == null) {
+      res.send(403, {"status": "error", "error": "The question needs at least one tag"});
+    }
+    else {
+      var username = decoded.username
+      var id = randomstring.generate();
 
-    // HOW TO MAKE SURE THEIR REPUTATION IS NOT ALWAYS 1???
-    sodb.collection("verified_users").findOne({"username": req.session.username}, function(e1, r1) {
-      var u_rep = r1.reputation;
-      var add_media = null;
-      if (req.body.media != null) {
-        add_media = req.body.media;
-      }
-      var obj = {"id": id, "user": {"username": req.session.username, "reputation": u_rep}, "title": req.body.title, "body": req.body.body, "score": 0, "view_count": 1, "answer_count": 0, "timestamp": Date.now() / 1000, "media": add_media, "tags": req.body.tags, "accepted_answer_id": null};
-      sodb.collection("questions").insertOne(obj , function(err, result) {
-        if (err) {
-          res.send(403, {"status": "error", "error": "Error creating question at this time"});
+      // HOW TO MAKE SURE THEIR REPUTATION IS NOT ALWAYS 1???
+      sodb.collection("verified_users").findOne({"username": decoded.username}, function(e1, r1) {
+        var u_rep = r1.reputation;
+        var add_media = null;
+        if (req.body.media != null) {
+          add_media = req.body.media;
         }
-        else {
-          console.log("Question successfully inserted into Questions collection");
-          sodb.collection("answers").insertOne({"id": id, "answers": []}, function(err2, res2) {
-            if (err2) throw err2;
-            else console.log("Counterpart for this question in the answers collection also created.");
-          })
-          sodb.collection("views").insertOne({"id": id, "views": [], "upvotes": [], "downvotes": []}), function(err3, res3) {
-            if (err3) throw err3;
-            else console.log("Views component for this question also created.");
+        var obj = {"id": id, "user": {"username": decoded.username, "reputation": u_rep}, "title": req.body.title, "body": req.body.body, "score": 0, "view_count": 1, "answer_count": 0, "timestamp": Date.now() / 1000, "media": add_media, "tags": req.body.tags, "accepted_answer_id": null};
+        sodb.collection("questions").insertOne(obj , function(err, result) {
+          if (err) {
+            res.send(403, {"status": "error", "error": "Error creating question at this time"});
           }
-          res.json({"status":"OK", "id": id});
-        }
+          else {
+            console.log("Question successfully inserted into Questions collection");
+            sodb.collection("answers").insertOne({"id": id, "answers": []}, function(err2, res2) {
+              if (err2) throw err2;
+              else console.log("Counterpart for this question in the answers collection also created.");
+            })
+            sodb.collection("views").insertOne({"id": id, "views": [], "upvotes": [], "downvotes": []}), function(err3, res3) {
+              if (err3) throw err3;
+              else console.log("Views component for this question also created.");
+            }
+            res.json({"status":"OK", "id": id});
+          }
+        })
       })
-    })
-  }
+    }
+  })
 })
 
 app.get('/questions/:id', (req, res) => {
@@ -424,12 +431,12 @@ app.get('/questions/:id', (req, res) => {
       // Update view Count - if the user is NEW
       // First determine if user is new
       var username;
-
-      if (req.cookies.username == null) {
+      var decoded = jwt.verify(req.cookies.token, 'so-clone');
+      if (decoded == null) {
           username = ip.address();
       }
       else {
-        username = req.session.username;
+        username = decoded.username;
       }
       sodb.collection("views").findOne({"id": id}).then(function(res4) {
         var views = res4.views;
@@ -479,7 +486,8 @@ app.post('/questions/:id/answers/add', (req, res) => {
   var uname = null;
 
   // First, check that a user is logged in
-  if (req.cookies.username == null) {
+  var decoded = jwt.verify(req.cookies.token, 'so_clone');
+  if (decoded.username == null) {
     console.log("No user logged in at POST 1 ");
     res.send(403, {"status": "error", "error": "No user logged in"});
   }
@@ -488,7 +496,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
     res.send(403, {"status": "error", "error": "The answer needs a body"});
   }
   else {
-    uname = req.cookies.username;
+    uname = decoded.username;
     console.log(uname);
     sodb.collection("answers").findOne({"id": id}, function(err, result) {
       if (err) {
@@ -525,7 +533,6 @@ app.post('/questions/:id/answers/add', (req, res) => {
           if (err3) throw err3;
           else {
             console.log("Answer added to list");
-
           }
         })
       }
@@ -672,7 +679,8 @@ app.post('/search', (req, res) => {
 // Milestone 2 new functions
 
 app.delete('/questions/:id', (req, res) => {
-  if (req.cookies.username == null) {
+  var decoded = jwt.verify(req.cookies.token, 'so_clone');
+  if (decoded.username == null) {
     res.send(403,"You do not have rights to do this!");
   }
   else {
@@ -680,7 +688,7 @@ app.delete('/questions/:id', (req, res) => {
 
     sodb.collection("questions").findOne({id: id}, function(err, result) {
       if (err) throw err;
-      if (result.user['username'] != req.cookies.username) {
+      if (result.user['username'] != decoded.username) {
         res.send(403,"You do not have rights to do this!");
         //res.json({"status": "error", "error": "Only the author can delete their question"});
       }
@@ -703,10 +711,11 @@ app.delete('/questions/:id', (req, res) => {
 })
 
 app.get('/user/:username', (req, res) => {
-  if (req.params.username == null) {
+  var decoded = jwt.verify(req.cookies.token, 'so_clone');
+  if (decoded.username == null) {
     res.send(403, {"status": "error", "error": "No username given"});
   }
-  var username = req.params.username;
+  var username = decoded.username;
 
   sodb.collection("verified_users").findOne({username: username}, function(err, result) {
     if (err) {
@@ -729,7 +738,8 @@ app.get('/user/:username', (req, res) => {
 })
 
 app.get('/user/:username/questions', (req, res) => {
-  var username = req.params.username;
+  var decoded = jwt.verify(req.cookies.token, 'so_clone');
+  var username = decoded.username;
   console.log("Username is " + username);
   // Find all questions where user['username'] is the given username
 
@@ -751,7 +761,8 @@ app.get('/user/:username/questions', (req, res) => {
 })
 
 app.get('/user/:username/answers', (req, res) => {
-  var username = req.params.username;
+  var decoded = jwt.verify(req.cookies.token, 'so_clone');
+  var username = decoded.username;
   // Find all answers where user['username'] is the given username
 
   var sorter = {"timestamp": -1}
@@ -781,7 +792,8 @@ app.get('/user/:username/answers', (req, res) => {
 // Milestone 3 new functionality
 app.post("/questions/:id/upvote", (req, res) => {
   var id = req.params.id;
-  var username = req.cookies.username;
+  var decoded = jwt.verify(req.cookies.token, 'so_clone');
+  var username = decoded.username;
 
   if (username == null) {
     console.log("No user logged in");
@@ -986,7 +998,8 @@ app.post("/answers/:id/upvote", (req, res) => {
   var id = req.params.id;
 
   // Check that user is logged in
-  var username = req.cookies.username;
+  var decoded = jwt.verify(req.cookies.token, 'so_clone');
+  var username = decoded.username;
 
   if (username == null) {
     console.log("No user logged in");
@@ -1169,7 +1182,8 @@ app.post("/answers/:id/accept", (req, res) => {
   var id = req.params.id;
 
   // Check that user is logged in
-  var username = req.cookies.username;
+  var decoded = jwt.verify(req.cookies.token, 'so_clone');
+  var username = decoded.username;
 
   if (username == null) {
     console.log("No user logged in");
@@ -1181,7 +1195,7 @@ app.post("/answers/:id/accept", (req, res) => {
     var answer = result.answers.find(x => x.id === id);
     sodb.collection("questions").findOne({id: result.id}, function(e1, r1) {
       if (e1) throw e1;
-      else if (r1.user['username'] != req.session.username) {
+      else if (r1.user['username'] != username) {
         res.send(403, {"status": "error", "error": "You do not have rights to accept an answer"});
       }
       else {
@@ -1205,7 +1219,8 @@ app.post("/answers/:id/accept", (req, res) => {
 // Takes in FORM DATA, you may need to install something like multer
 app.post("/addmedia", upload.single('content'), (req, res) => {
   // Check that user is logged in
-  var username = req.cookies.username;
+  var decoded = jwt.verify(req.cookies.token, 'so_clone');
+  var username = decoded.username;
 
   if (username == null) {
     console.log("No user logged in");
