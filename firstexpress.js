@@ -19,6 +19,8 @@ const MongoStore = require('connect-mongo')(session);
 const cookie = require('cookie');
 const jwt = require('jsonwebtoken');
 
+var morgan = require('morgan');
+
 // New stuff for Media functionality (M3)
 var fs = require('fs');
 var Grid = require('gridfs');
@@ -153,6 +155,12 @@ cassandra_client.connect(function (err) {
   console.log("Connected to Cassandra DB");
   console.log(Object.keys(cassandra_client.metadata.keyspaces));
 });
+
+var accessLogStream = fs.createWriteStream(
+      path.join(__dirname, 'access.log'), {flags: 'a'}
+ );
+// setup the logger
+app.use(morgan('combined', {stream: accessLogStream}));
 
 // Milestone 1
 
