@@ -358,14 +358,17 @@ app.post('/logout', (req, res) => {
 app.post('/questions/add', (req, res) => {
   // Modify for handling media array
   console.log("Session details for adding question:");
-  console.log(req.session);
+  //console.log(req.session);
   console.log(req.cookies);
   // First, check that a user is logged in
   /*if (req.cookies.username == null) {
     res.send(403, {"status": "error", "error": "No user logged in"});
   }*/
   jwt.verify(req.cookies.token, 'so_clone', function(err, decoded) {
-    if (err) res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
+    if (err) {
+      console.log("No user logged in at add question");
+      res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
+    }
     else if (decoded.username == null) {
       res.send(403, {"status": "error", "error": "No user logged in"});
     }
