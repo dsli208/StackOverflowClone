@@ -12,13 +12,7 @@ app.use(bodyParser.json());
 app.use(express.json());
 
 const ip = require('ip');
-const redis = require('redis');
-const redisClient = redis.createClient();
-var redisStore = require('connect-redis')(session);
-
-redisClient.on('error', (err) => {
-  console.log('Redis error: ', err);
-});
+const MongoStore = require('connect-mongo')(session);
 
 // New stuff for Media functionality (M3)
 var fs = require('fs');
@@ -40,7 +34,8 @@ var Db = require('mongodb').Db,
     Code = require('mongodb').Code,
     assert = require('assert'),
     GridFSBucket = require('mongodb').GridFSBucket;
-var url = "mongodb://192.168.122.18:27017/";
+//var url = "mongodb://192.168.122.18:27017/";
+var url = "mongodb://localhost:27017/";
 var mongodb;
 var sodb;
 var grid;
@@ -135,7 +130,7 @@ nodemailer.createTestAccount((err, account) => {
 // init
 app.use(session({
   secret: 'keyboard cat',
-  store: new redisStore({ host: '192.168.122.26', port: 6379, client: redisClient}),
+  store: new MongoStore({ url: url}),
   resave: false,
   saveUninitialized: true
 }))
