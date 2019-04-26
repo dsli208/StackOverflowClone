@@ -336,7 +336,7 @@ app.post('/login', (req, res) => {
         req.session.save();
 
         var token = jwt.sign({username: username}, 'so_clone');
-        res.cookie('auth_token', token);
+        res.cookie('access_token', token);
 
         console.log(req.session);
 
@@ -364,7 +364,7 @@ app.post('/questions/add', (req, res) => {
   /*if (req.cookies.username == null) {
     res.send(403, {"status": "error", "error": "No user logged in"});
   }*/
-  jwt.verify(req.cookies.token, 'so_clone', function(err, decoded) {
+  jwt.verify(req.cookies.access_token, 'so_clone', function(err, decoded) {
     if (err) {
       console.log("No user logged in at add question");
       res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
@@ -435,7 +435,7 @@ app.get('/questions/:id', (req, res) => {
       // Update view Count - if the user is NEW
       // First determine if user is new
       var username;
-      var decoded = jwt.verify(req.cookies.token, 'so-clone');
+      var decoded = jwt.verify(req.cookies.access_token, 'so-clone');
       if (decoded == null) {
           username = ip.address();
       }
@@ -490,7 +490,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
   var uname = null;
 
   // First, check that a user is logged in
-  var decoded = jwt.verify(req.cookies.token, 'so_clone');
+  var decoded = jwt.verify(req.cookies.access_token, 'so_clone');
   if (decoded == null) res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
   else if (decoded.username == null) {
     console.log("No user logged in at POST 1 ");
@@ -684,7 +684,7 @@ app.post('/search', (req, res) => {
 // Milestone 2 new functions
 
 app.delete('/questions/:id', (req, res) => {
-  var decoded = jwt.verify(req.cookies.token, 'so_clone');
+  var decoded = jwt.verify(req.cookies.access_token, 'so_clone');
   if (decoded == null) res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
   else if (decoded.username == null) {
     res.send(403,"You do not have rights to do this!");
@@ -717,7 +717,7 @@ app.delete('/questions/:id', (req, res) => {
 })
 
 app.get('/user/:username', (req, res) => {
-  var decoded = jwt.verify(req.cookies.token, 'so_clone');
+  var decoded = jwt.verify(req.cookies.access_token, 'so_clone');
   if (decoded == null) res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
   else if (decoded.username == null) {
     res.send(403, {"status": "error", "error": "No username given"});
@@ -745,7 +745,7 @@ app.get('/user/:username', (req, res) => {
 })
 
 app.get('/user/:username/questions', (req, res) => {
-  var decoded = jwt.verify(req.cookies.token, 'so_clone');
+  var decoded = jwt.verify(req.cookies.access_token, 'so_clone');
   if (decoded == null) {
     res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
     return;
@@ -772,7 +772,7 @@ app.get('/user/:username/questions', (req, res) => {
 })
 
 app.get('/user/:username/answers', (req, res) => {
-  var decoded = jwt.verify(req.cookies.token, 'so_clone');
+  var decoded = jwt.verify(req.cookies.access_token, 'so_clone');
   if (decoded == null) {
     res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
     return;
@@ -807,7 +807,7 @@ app.get('/user/:username/answers', (req, res) => {
 // Milestone 3 new functionality
 app.post("/questions/:id/upvote", (req, res) => {
   var id = req.params.id;
-  var decoded = jwt.verify(req.cookies.token, 'so_clone');
+  var decoded = jwt.verify(req.cookies.access_token, 'so_clone');
   if (decoded == null) {
     res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
     return;
@@ -1017,7 +1017,7 @@ app.post("/answers/:id/upvote", (req, res) => {
   var id = req.params.id;
 
   // Check that user is logged in
-  var decoded = jwt.verify(req.cookies.token, 'so_clone');
+  var decoded = jwt.verify(req.cookies.access_token, 'so_clone');
   if (decoded == null) {
     res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
     return;
@@ -1205,7 +1205,7 @@ app.post("/answers/:id/accept", (req, res) => {
   var id = req.params.id;
 
   // Check that user is logged in
-  var decoded = jwt.verify(req.cookies.token, 'so_clone');
+  var decoded = jwt.verify(req.cookies.access_token, 'so_clone');
   if (decoded == null) {
     res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
     return;
@@ -1246,7 +1246,7 @@ app.post("/answers/:id/accept", (req, res) => {
 // Takes in FORM DATA, you may need to install something like multer
 app.post("/addmedia", upload.single('content'), (req, res) => {
   // Check that user is logged in
-  var decoded = jwt.verify(req.cookies.token, 'so_clone');
+  var decoded = jwt.verify(req.cookies.access_token, 'so_clone');
   if (decoded == null) {
     res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
     return;
