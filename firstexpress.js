@@ -1,8 +1,11 @@
 // REMEMBER TO MAKE SURE ALL PACKAGES - denoted by require('package_name') are installed when porting over to a remote instance
 const express = require('express')
+var cookieParser = require('cookie-parser')
 const app = express()
 const port = 3000;
+app.use(cookieParser())
 
+var jwt = require('express-jwt');
 const randomstring = require('randomstring');
 const nodemailer = require('nodemailer');
 var NodeSession = require('node-session');
@@ -132,19 +135,14 @@ app.use(session({
   secret: 'keyboard cat',
   store: new MongoStore({ url: url}),
   resave: false,
-  saveUninitialized: true
+  saveUninitialized: true,
+  cookie: {}
 }))
 
 app.use(function (req, res, next) {
   if (!req.session.views) {
     req.session.views = {};
   }
-
-  // get the url pathname
-  //var pathname = parseurl(req).pathname;
-
-  // count the views
-  //req.session.views[pathname] = (req.session.views[pathname] || 0) + 1;
 
   next();
 })
