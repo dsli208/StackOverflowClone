@@ -133,7 +133,7 @@ nodemailer.createTestAccount((err, account) => {
 // init
 app.use(session({
   secret: 'keyboard cat',
-  store: new MongoStore({url: url, collection: "sessions"}),
+  store: new MongoStore({url: url + "stackoverflowclone", collection: "sessions"}),
   resave: false,
   saveUninitialized: true,
   cookie: {}
