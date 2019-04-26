@@ -5,7 +5,7 @@ const app = express()
 const port = 3000;
 app.use(cookieParser())
 
-var jwt = require('express-jwt');
+//var jwt = require('express-jwt');
 const randomstring = require('randomstring');
 const nodemailer = require('nodemailer');
 var NodeSession = require('node-session');
