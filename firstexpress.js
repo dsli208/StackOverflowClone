@@ -347,7 +347,8 @@ app.post('/login', (req, res) => {
 
 app.post('/logout', (req, res) => {
   console.log("Logout called");
-  req.session.username = null; // maybe use req.session.forget() instead?
+  req.session.username = null;
+  res.clearCookie("username"); // With cookies, how to change to their equivalent?
   user = null;
 
   res.json({"status": "OK"});
