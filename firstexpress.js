@@ -365,7 +365,8 @@ app.post('/questions/add', (req, res) => {
     res.send(403, {"status": "error", "error": "No user logged in"});
   }*/
   jwt.verify(req.cookies.token, 'so_clone', function(err, decoded) {
-    if (decoded.username == null) {
+    if (err) res.send(403, {"status": "error": "Error: No user logged in or no token found"});
+    else if (decoded.username == null) {
       res.send(403, {"status": "error", "error": "No user logged in"});
     }
     else if (req.body.title == null) {
@@ -487,7 +488,8 @@ app.post('/questions/:id/answers/add', (req, res) => {
 
   // First, check that a user is logged in
   var decoded = jwt.verify(req.cookies.token, 'so_clone');
-  if (decoded.username == null) {
+  if (decoded == null) res.send(403, {"status": "error": "Error: No user logged in or no token found"});
+  else if (decoded.username == null) {
     console.log("No user logged in at POST 1 ");
     res.send(403, {"status": "error", "error": "No user logged in"});
   }
@@ -680,7 +682,8 @@ app.post('/search', (req, res) => {
 
 app.delete('/questions/:id', (req, res) => {
   var decoded = jwt.verify(req.cookies.token, 'so_clone');
-  if (decoded.username == null) {
+  if (decoded == null) res.send(403, {"status": "error": "Error: No user logged in or no token found"});
+  else if (decoded.username == null) {
     res.send(403,"You do not have rights to do this!");
   }
   else {
@@ -712,7 +715,8 @@ app.delete('/questions/:id', (req, res) => {
 
 app.get('/user/:username', (req, res) => {
   var decoded = jwt.verify(req.cookies.token, 'so_clone');
-  if (decoded.username == null) {
+  if (decoded == null) res.send(403, {"status": "error": "Error: No user logged in or no token found"});
+  else if (decoded.username == null) {
     res.send(403, {"status": "error", "error": "No username given"});
   }
   var username = decoded.username;
@@ -739,6 +743,10 @@ app.get('/user/:username', (req, res) => {
 
 app.get('/user/:username/questions', (req, res) => {
   var decoded = jwt.verify(req.cookies.token, 'so_clone');
+  if (decoded == null) {
+    res.send(403, {"status": "error": "Error: No user logged in or no token found"});
+    return;
+  }
   var username = decoded.username;
   console.log("Username is " + username);
   // Find all questions where user['username'] is the given username
@@ -762,6 +770,10 @@ app.get('/user/:username/questions', (req, res) => {
 
 app.get('/user/:username/answers', (req, res) => {
   var decoded = jwt.verify(req.cookies.token, 'so_clone');
+  if (decoded == null) {
+    res.send(403, {"status": "error": "Error: No user logged in or no token found"});
+    return;
+  }
   var username = decoded.username;
   // Find all answers where user['username'] is the given username
 
@@ -793,6 +805,10 @@ app.get('/user/:username/answers', (req, res) => {
 app.post("/questions/:id/upvote", (req, res) => {
   var id = req.params.id;
   var decoded = jwt.verify(req.cookies.token, 'so_clone');
+  if (decoded == null) {
+    res.send(403, {"status": "error": "Error: No user logged in or no token found"});
+    return;
+  }
   var username = decoded.username;
 
   if (username == null) {
@@ -999,6 +1015,10 @@ app.post("/answers/:id/upvote", (req, res) => {
 
   // Check that user is logged in
   var decoded = jwt.verify(req.cookies.token, 'so_clone');
+  if (decoded == null) {
+    res.send(403, {"status": "error": "Error: No user logged in or no token found"});
+    return;
+  }
   var username = decoded.username;
 
   if (username == null) {
@@ -1183,6 +1203,10 @@ app.post("/answers/:id/accept", (req, res) => {
 
   // Check that user is logged in
   var decoded = jwt.verify(req.cookies.token, 'so_clone');
+  if (decoded == null) {
+    res.send(403, {"status": "error": "Error: No user logged in or no token found"});
+    return;
+  }
   var username = decoded.username;
 
   if (username == null) {
@@ -1220,6 +1244,10 @@ app.post("/answers/:id/accept", (req, res) => {
 app.post("/addmedia", upload.single('content'), (req, res) => {
   // Check that user is logged in
   var decoded = jwt.verify(req.cookies.token, 'so_clone');
+  if (decoded == null) {
+    res.send(403, {"status": "error": "Error: No user logged in or no token found"});
+    return;
+  }
   var username = decoded.username;
 
   if (username == null) {
