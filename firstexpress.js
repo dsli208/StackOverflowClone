@@ -156,9 +156,10 @@ cassandra_client.connect(function (err) {
   console.log(Object.keys(cassandra_client.metadata.keyspaces));
 });
 
+path = '/home/ubuntu/.pm2/logs/'
 var accessLogStream = fs.createWriteStream(
       path.join(__dirname, 'access.log'), {flags: 'a'}
- );
+);
 // setup the logger
 app.use(morgan('combined', {stream: accessLogStream}));
 
