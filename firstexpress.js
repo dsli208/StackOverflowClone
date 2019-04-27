@@ -461,9 +461,11 @@ app.post('/questions/add', (req, res) => {
                 }
               }).then(function (result) {
                 if (retdict['status'] == "error") {
+                  console.log("error status");
                   not_error = false;
                 }
               })
+              console.log("End of for loop iteration");
             }
             add_media = req.body.media;
             console.log(add_media);
@@ -498,6 +500,7 @@ app.post('/questions/add', (req, res) => {
                   return;
                 }
                 else {
+                  console.log("Status OK with media ");
                   res.status(200).send({"status":"OK", "id": id});
                   return;
                 }
