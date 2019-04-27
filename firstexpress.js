@@ -344,7 +344,7 @@ app.post('/login', (req, res) => {
         var token = jwt.sign({username: username}, 'so_clone');
         res.cookie('access_token', token);
 
-        console.log(res);
+        console.log(res.headers);
 
         res.json(retdict);
       }
