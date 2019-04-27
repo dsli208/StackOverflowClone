@@ -436,27 +436,51 @@ app.post('/questions/add', (req, res) => {
             })
           }
           add_media = req.body.media;
-        }
-        var obj = {"id": id, "user": {"username": decoded.username, "reputation": u_rep}, "title": req.body.title, "body": req.body.body, "score": 0, "view_count": 1, "answer_count": 0, "timestamp": Date.now() / 1000, "media": add_media, "tags": req.body.tags, "accepted_answer_id": null};
-        sodb.collection("questions").insertOne(obj , function(err, result) {
-          if (err) {
-            res.send(403, {"status": "error", "error": "Error creating question at this time"});
-            return;
-          }
-          else {
-            //console.log("Question successfully inserted into Questions collection");
-            sodb.collection("answers").insertOne({"id": id, "answers": []}, function(err2, res2) {
-              if (err2) throw err2;
-              //else console.log("Counterpart for this question in the answers collection also created.");
-            })
-            sodb.collection("views").insertOne({"id": id, "views": [], "upvotes": [], "downvotes": []}), function(err3, res3) {
-              if (err3) throw err3;
-              //else console.log("Views component for this question also created.");
+
+          var obj = {"id": id, "user": {"username": decoded.username, "reputation": u_rep}, "title": req.body.title, "body": req.body.body, "score": 0, "view_count": 1, "answer_count": 0, "timestamp": Date.now() / 1000, "media": add_media, "tags": req.body.tags, "accepted_answer_id": null};
+          sodb.collection("questions").insertOne(obj , function(err, result) {
+            if (err) {
+              res.send(403, {"status": "error", "error": "Error creating question at this time"});
+              return;
             }
-            res.json({"status":"OK", "id": id});
-            return;
-          }
-        })
+            else {
+              //console.log("Question successfully inserted into Questions collection");
+              sodb.collection("answers").insertOne({"id": id, "answers": []}, function(err2, res2) {
+                if (err2) throw err2;
+                //else console.log("Counterpart for this question in the answers collection also created.");
+              })
+              sodb.collection("views").insertOne({"id": id, "views": [], "upvotes": [], "downvotes": []}), function(err3, res3) {
+                if (err3) throw err3;
+                //else console.log("Views component for this question also created.");
+              }
+              res.json({"status":"OK", "id": id});
+              return;
+            }
+          })
+          
+        }
+        else {
+          var obj = {"id": id, "user": {"username": decoded.username, "reputation": u_rep}, "title": req.body.title, "body": req.body.body, "score": 0, "view_count": 1, "answer_count": 0, "timestamp": Date.now() / 1000, "media": add_media, "tags": req.body.tags, "accepted_answer_id": null};
+          sodb.collection("questions").insertOne(obj , function(err, result) {
+            if (err) {
+              res.send(403, {"status": "error", "error": "Error creating question at this time"});
+              return;
+            }
+            else {
+              //console.log("Question successfully inserted into Questions collection");
+              sodb.collection("answers").insertOne({"id": id, "answers": []}, function(err2, res2) {
+                if (err2) throw err2;
+                //else console.log("Counterpart for this question in the answers collection also created.");
+              })
+              sodb.collection("views").insertOne({"id": id, "views": [], "upvotes": [], "downvotes": []}), function(err3, res3) {
+                if (err3) throw err3;
+                //else console.log("Views component for this question also created.");
+              }
+              res.json({"status":"OK", "id": id});
+              return;
+            }
+          })
+        }
       })
     }
   })
