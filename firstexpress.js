@@ -405,7 +405,7 @@ app.post('/questions/add', (req, res) => {
       var not_error = true;
       // First, get reputation
       console.log(username);
-      sodb.collection("verified_users").findOne({"username": username}).then(function(e1, r1) {
+      sodb.collection("verified_users").findOne({"username": username}).then(function(r1) {
         console.log(r1);
         var u_rep = r1.reputation;
       }).then(function(e2, r2) { // Now, check if the question has media
