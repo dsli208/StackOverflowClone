@@ -505,6 +505,7 @@ app.post('/questions/add', (req, res) => {
           })
         }
         else {
+          console.log("Else condition executing");
           var obj = {"id": id, "user": {"username": decoded.username, "reputation": u_rep}, "title": req.body.title, "body": req.body.body, "score": 0, "view_count": 1, "answer_count": 0, "timestamp": Date.now() / 1000, "media": add_media, "tags": req.body.tags, "accepted_answer_id": null};
           sodb.collection("questions").insertOne(obj , function(err, result) {
             if (err) {
