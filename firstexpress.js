@@ -342,7 +342,7 @@ app.post('/login', (req, res) => {
         req.session.save();
 
         var token = jwt.sign({username: username}, 'so_clone');
-        res.cookie('access_token', token);
+        res.cookie('access_token', token, {httpOnly: false});
 
         console.log("Res headers");
         console.log(res.header()._headers);
