@@ -11,7 +11,8 @@ const nodemailer = require('nodemailer');
 var NodeSession = require('node-session');
 var session = require('express-session');
 const bodyParser = require('body-parser');
-app.use(bodyParser.json());
+app.use(bodyParser.json({limit: '100mb', extended: true}))
+app.use(bodyParser.urlencoded({limit: '100mb', extended: true}))
 app.use(express.json());
 
 const ip = require('ip');
