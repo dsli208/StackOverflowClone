@@ -401,6 +401,7 @@ app.post('/questions/add', (req, res) => {
       res.send(403, {"status": "error", "error": "The question needs at least one tag"});
     }
     else {
+      console.log("Valid add question case");
       var username = decoded.username;
       //console.log(username);
       var id = randomstring.generate();
