@@ -1252,9 +1252,11 @@ app.post("/answers/:id/accept", (req, res) => {
 
 // Takes in FORM DATA, you may need to install something like multer
 app.post("/addmedia", upload.single('content'), (req, res) => {
+  console.log("add media");
   // Check that user is logged in
   jwt.verify(req.cookies.access_token, 'so_clone', function(err, decoded) {
     if (err || decoded == null) {
+      console.log("User not found");
       res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
       return;
     }
@@ -1274,6 +1276,7 @@ app.post("/addmedia", upload.single('content'), (req, res) => {
     var content;
     fs.readFile(req.file['path'], function read(err, data) {
       if (err) {
+          console.log("Read file error");
           throw err;
       }
       content = data;
