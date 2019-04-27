@@ -373,16 +373,17 @@ app.get('/questions/add', (req, res) => {
 })
 
 app.post('/questions/add', (req, res) => {
-  const add_q_async = async function(req, res) {
+  var add_q_async = async function(req, res) {
     try {
-          // Modify for handling media array
-          jwt.verify(req.cookies.access_token, 'so_clone', function(err, decoded) {
+            // Modify for handling media array
+            var decoded = jwt.verify(req.cookies.access_token, 'so_clone');
             // Base cases
-            if (err) {
-              console.log("No user logged in at add question");
+            if (decoded == null) {
+              console.log("No user logged in at add question - decoded null");
               res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
             }
             else if (decoded.username == null) {
+              console.log("No user logged in at add question");
               res.send(403, {"status": "error", "error": "No user logged in"});
             }
             else if (req.body.title == null) {
@@ -514,7 +515,6 @@ app.post('/questions/add', (req, res) => {
                   return;
                 }
               }
-            })
           }
           catch (e) {
             res.status(403).send({"status": "error", "error": "Function error"});
