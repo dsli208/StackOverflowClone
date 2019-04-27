@@ -336,10 +336,6 @@ app.post('/login', (req, res) => {
         console.log("Entry found. Logging in.");
 
         // If verified, put them in the session
-        glob_username = username;
-        req.session.username = username;
-        glob_session = req.session;
-        req.session.save();
 
         var token = jwt.sign({username: username}, 'so_clone');
         res.cookie('access_token', token, {secure: false, httpOnly: false});
