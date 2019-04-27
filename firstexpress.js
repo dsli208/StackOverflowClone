@@ -401,7 +401,7 @@ app.post('/questions/add', (req, res) => {
       res.send(403, {"status": "error", "error": "The question needs at least one tag"});
     }
     else {
-      console.log("Valid add question case");
+      //console.log("Valid add question case");
       var username = decoded.username;
       //console.log(username);
       var id = randomstring.generate();
@@ -437,19 +437,19 @@ app.post('/questions/add', (req, res) => {
                 }
                 else if (r2.username != username) {
                   console.log(r2);
-                  console.log("Bad username.  Media id " + media_id + " poster " + r2.username + " username " + username);
+                  console.log("Bad username.  Media id " + media_id + " poster " + r2.username + " username " + username + " time " + Date.now());
                   retdict = {"status": "error", "error": "Only the original asker can use their media"};
                   //res.send(403, ); // Ensure file can only be used by original asker
                 }
                 else if (r2.used) {
                   console.log(r2);
-                  console.log("Already used.  Media id " + media_id +r2.username + " username " + username);
+                  console.log("Already used.  Media id " + media_id +r2.username + " username " + username + " time " + Date.now());
                   retdict = {"status": "error", "error": "Media file is already being used in another question/answer"};
                   //res.send(403, ); // file is already used
                 }
                 else {
                   var new_used_dict = {$set: {used: true}}; // file isn't used and can be used for this question, mark it used
-                  console.log("Media with id " + media_id + " exists and is being marked true.");
+                  console.log("Media with id " + media_id + " exists and is being marked true at time " + Date.now());
                   console.log(r2);
                   sodb.collection("media").updateOne({"mid": media_id}, new_used_dict, function(e3, r3) {
                     if (e3) throw e3;
@@ -506,7 +506,7 @@ app.post('/questions/add', (req, res) => {
           })
         }
         else {
-          console.log("Else condition executing");
+          //console.log("Else condition executing");
           var obj = {"id": id, "user": {"username": decoded.username, "reputation": u_rep}, "title": req.body.title, "body": req.body.body, "score": 0, "view_count": 1, "answer_count": 0, "timestamp": Date.now() / 1000, "media": add_media, "tags": req.body.tags, "accepted_answer_id": null};
           sodb.collection("questions").insertOne(obj , function(err, result) {
             if (err) {
