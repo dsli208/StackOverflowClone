@@ -403,6 +403,7 @@ app.post('/questions/add', (req, res) => {
       var username = decoded.username;
       //console.log(username);
       var id = randomstring.generate();
+      var retdict = {"status": "OK", "id": null};
 
       // HOW TO MAKE SURE THEIR REPUTATION IS NOT ALWAYS 1???
       sodb.collection("verified_users").findOne({"username": decoded.username}, function(e1, r1) {
@@ -421,18 +422,21 @@ app.post('/questions/add', (req, res) => {
               sodb.collection("media").findOne({"mid": media_id}, function(e2, r2) {
                 if (e2 || r2 == null) {
                   console.log("Nonexistent media");
-                  res.send(403, {"status": "error", "error": "Media file does not exist for this ID"}); // file doesn't exist
+                  retdict = {"status": "error", "error": "Media file does not exist for this ID"}; // file doesn't exist
+                  //res.send(403, {"status": "error", "error": "Media file does not exist for this ID"});
                   return;
                 }
                 else if (r2.username != username) {
                   console.log(r2);
                   console.log("Bad username");
-                  res.send(403, {"status": "error", "error": "Only the original asker can use their media"}); // Ensure file can only be used by original asker
+                  retdict = {"status": "error", "error": "Only the original asker can use their media"};
+                  //res.send(403, ); // Ensure file can only be used by original asker
                   return;
                 }
                 else if (r2.used) {
                   console.log("Already used");
-                  res.send(403, {"status": "error", "error": "Media file is already being used in another question/answer"}); // file is already used
+                  retdict = {"status": "error", "error": "Media file is already being used in another question/answer"};
+                  //res.send(403, ); // file is already used
                   return;
                 }
                 else {
@@ -451,7 +455,8 @@ app.post('/questions/add', (req, res) => {
             sodb.collection("questions").insertOne(obj , function(err, result) {
               if (err) {
                 console.log("Can't create question");
-                res.send(403, {"status": "error", "error": "Error creating question at this time"});
+                retdict = {"status": "error", "error": "Error creating question at this time"};
+                //res.send(403, );
                 return;
               }
               else {
@@ -470,7 +475,12 @@ app.post('/questions/add', (req, res) => {
                   }
                   //else console.log("Views component for this question also created.");
                 }
-                res.json({"status":"OK", "id": id});
+                if (retdict.status == "error") {
+                  res.send(403, retdict);
+                }
+                else {
+                  res.json({"status":"OK", "id": id});
+                }
                 return;
               }
             })
