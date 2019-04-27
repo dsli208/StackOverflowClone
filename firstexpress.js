@@ -135,7 +135,7 @@ nodemailer.createTestAccount((err, account) => {
 
 // Adding session support
 // init
-app.use(session({
+/*app.use(session({
   secret: 'keyboard cat',
   store: new MongoStore({url: url + "stackoverflowclone", collection: "sessions"}),
   resave: false,
@@ -149,7 +149,7 @@ app.use(function (req, res, next) {
   }
 
   next();
-})
+})*/
 
 cassandra_client.connect(function (err) {
   console.log("Connected to Cassandra DB");
