@@ -449,13 +449,13 @@ app.post('/questions/add', (req, res) => {
                 }
                 else {
                   var new_used_dict = {$set: {used: true}}; // file isn't used and can be used for this question, mark it used
-                  console.log("Media with id " + media_id + " exists and is being marked true at time " + Date.now());
+                  console.log("Media with id " + media_id + " exists and is being marked true at time " + Date.now() + " by user " + username);
                   console.log(r2);
                   sodb.collection("media").updateOne({"mid": media_id}, new_used_dict, function(e3, r3) {
                     if (e3) throw e3;
                     else {
                       console.log("Media exists");
-                      console.log(r3);
+                      //console.log(r3);
                     }
                   })
                 }
