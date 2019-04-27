@@ -396,7 +396,7 @@ app.post('/questions/add', (req, res) => {
     }
     else {
       var username = decoded.username;
-      console.log(username);
+      //console.log(username);
       var id = randomstring.generate();
 
       // HOW TO MAKE SURE THEIR REPUTATION IS NOT ALWAYS 1???
