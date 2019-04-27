@@ -364,9 +364,9 @@ app.post('/logout', (req, res) => {
 app.post('/questions/add', (req, res) => {
   // Modify for handling media array
   console.log("Session details for adding question:");
-  console.log(req);
-  console.log(req.headers);
-  console.log(req.cookies);
+  //console.log(req);
+  //console.log(req.headers);
+  //console.log(req.cookies);
 
   // First, check that a user is logged in
   /*if (req.cookies.username == null) {
