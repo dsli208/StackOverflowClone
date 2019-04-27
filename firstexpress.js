@@ -472,7 +472,7 @@ app.post('/questions/add', (req, res) => {
                   //else console.log("Views component for this question also created.");
                 }
                 if (retdict['status'] == "error") {
-                  console.log("Sending error status " + retdict);
+                  console.log("Sending error status: " + retdict['error']);
                   res.status(403).send(retdict);
                 }
                 else {
@@ -529,7 +529,6 @@ app.get('/questions/:id', (req, res) => {
       // Update view Count - if the user is NEW
       // First determine if user is new
       var username;
-
       if (req.cookies.access_token == null) {
           username = ip.address();
       }
