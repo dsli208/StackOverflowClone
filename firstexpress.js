@@ -371,7 +371,7 @@ app.post('/questions/add', (req, res) => {
   //console.log("Session details for adding question:");
   //console.log(req);
   //console.log(req.headers);
-  console.log(req.cookies);
+  //console.log(req.cookies);
 
   // First, check that a user is logged in
   /*if (req.cookies.username == null) {
@@ -413,14 +413,14 @@ app.post('/questions/add', (req, res) => {
             res.send(403, {"status": "error", "error": "Error creating question at this time"});
           }
           else {
-            console.log("Question successfully inserted into Questions collection");
+            //console.log("Question successfully inserted into Questions collection");
             sodb.collection("answers").insertOne({"id": id, "answers": []}, function(err2, res2) {
               if (err2) throw err2;
-              else console.log("Counterpart for this question in the answers collection also created.");
+              //else console.log("Counterpart for this question in the answers collection also created.");
             })
             sodb.collection("views").insertOne({"id": id, "views": [], "upvotes": [], "downvotes": []}), function(err3, res3) {
               if (err3) throw err3;
-              else console.log("Views component for this question also created.");
+              //else console.log("Views component for this question also created.");
             }
             res.json({"status":"OK", "id": id});
           }
@@ -1312,7 +1312,7 @@ app.get("/media/:id", (req, res) => {
   const query = "SELECT content FROM media WHERE id = '?'";
   const params = [id];
   cassandra_client.execute(query, params, {prepare: true}, function (err, result) {
-    if (result == null || result == undefined) {
+    if (result == null || result == undefined || err) {
       console.log("Not found");
       res.send(403, {"status": "error", "error": "No media file found"});
     }
