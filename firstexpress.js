@@ -435,19 +435,20 @@ app.post('/questions/add', (req, res) => {
                 }
                 else if (r2.username != username) {
                   console.log(r2);
-                  console.log("Bad username");
+                  console.log("Bad username.  Media id " + media_id);
                   retdict = {"status": "error", "error": "Only the original asker can use their media"};
                   //res.send(403, ); // Ensure file can only be used by original asker
                 }
                 else if (r2.used) {
                   console.log(r2);
-                  console.log("Already used");
+                  console.log("Already used.  Media id " + media_id);
                   retdict = {"status": "error", "error": "Media file is already being used in another question/answer"};
                   //res.send(403, ); // file is already used
                 }
                 else {
                   var new_used_dict = {$set: {used: true}}; // file isn't used and can be used for this question, mark it used
                   console.log("Media with id " + media_id + " exists and is being marked true.");
+                  console.log(r2);
                   sodb.collection("media").updateOne({"mid": media_id}, new_used_dict, function(e3, r3) {
                     if (e3) throw e3;
                     else console.log("Media exists");
