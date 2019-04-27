@@ -417,10 +417,11 @@ app.post('/questions/add', (req, res) => {
             resolve("Test");
           })
           promise.then(function(presult1) {
+            console.log("Second part of promise");
             var not_error = true;
             for (var i = 0; i < req.body.media.length && not_error; i++) {
               var media_id = req.body.media[i];
-              console.log(media_id);
+              console.log("i = " + i + " and media id is " + media_id);
               sodb.collection("media").findOne({"mid": media_id}).then(function(r2) {
                 /*if (e2) {
                   console.log(r2);
@@ -446,6 +447,7 @@ app.post('/questions/add', (req, res) => {
                 }
                 else {
                   var new_used_dict = {$set: {used: true}}; // file isn't used and can be used for this question, mark it used
+                  console.log("Media with id " + media_id + " exists and is being marked true.");
                   sodb.collection("media").updateOne({"mid": media_id}, new_used_dict, function(e3, r3) {
                     if (e3) throw e3;
                     else console.log("Media exists");
