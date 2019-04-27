@@ -529,11 +529,12 @@ app.get('/questions/:id', (req, res) => {
       // Update view Count - if the user is NEW
       // First determine if user is new
       var username;
-      var decoded = jwt.verify(req.cookies.access_token, 'so-clone');
-      if (decoded == null) {
+
+      if (req.cookies.access_token == null) {
           username = ip.address();
       }
       else {
+        var decoded = jwt.verify(req.cookies.access_token, 'so-clone');
         username = decoded.username;
       }
       sodb.collection("views").findOne({"id": id}).then(function(res4) {
