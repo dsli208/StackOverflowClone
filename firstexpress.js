@@ -424,20 +424,17 @@ app.post('/questions/add', (req, res) => {
                   console.log("Nonexistent media");
                   retdict = {"status": "error", "error": "Media file does not exist for this ID"}; // file doesn't exist
                   //res.send(403, {"status": "error", "error": "Media file does not exist for this ID"});
-                  return;
                 }
                 else if (r2.username != username) {
                   console.log(r2);
                   console.log("Bad username");
                   retdict = {"status": "error", "error": "Only the original asker can use their media"};
                   //res.send(403, ); // Ensure file can only be used by original asker
-                  return;
                 }
                 else if (r2.used) {
                   console.log("Already used");
                   retdict = {"status": "error", "error": "Media file is already being used in another question/answer"};
                   //res.send(403, ); // file is already used
-                  return;
                 }
                 else {
                   var new_used_dict = {$set: {used: true}}; // file isn't used and can be used for this question, mark it used
@@ -457,7 +454,6 @@ app.post('/questions/add', (req, res) => {
                 console.log("Can't create question");
                 retdict = {"status": "error", "error": "Error creating question at this time"};
                 //res.send(403, );
-                return;
               }
               else {
                 //console.log("Question successfully inserted into Questions collection");
@@ -482,7 +478,6 @@ app.post('/questions/add', (req, res) => {
                 else {
                   res.json({"status":"OK", "id": id});
                 }
-                return;
               }
             })
           })
