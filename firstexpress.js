@@ -342,12 +342,12 @@ app.post('/login', (req, res) => {
         req.session.save();
 
         var token = jwt.sign({username: username}, 'so_clone');
-        res.cookie('access_token', token, {httpOnly: false});
+        res.cookie('access_token', token, {secure: false, httpOnly: false});
 
         console.log("Res headers");
         console.log(res.header()._headers);
 
-        res.json(retdict);
+        res.status(200).send(retdict);
       }
     });
   }
