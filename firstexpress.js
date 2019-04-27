@@ -1331,7 +1331,7 @@ app.get("/media/:id", (req, res) => {
       //res.contentType(req.query.filename.split(".")[1]);
       console.log("Media result");
       console.log(result);
-		  res.send(result.rows[0].contents);
+		  res.send(200, result.rows[0].content);
     }
   });
 })
