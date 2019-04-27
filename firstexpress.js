@@ -443,8 +443,8 @@ app.post('/questions/add', (req, res) => {
                 }
                 else if (r2.used) {
                   console.log(r2);
-                  console.log("Already used.  Media id " + media_id +r2.username + " username " + username + " time " + Date.now());
-                  retdict = {"status": "error", "error": "Media file " + media_id + "" is already being used in another question/answer"};
+                  console.log("Already used.  Media id " + media_id + " posted by " + r2.username + " username " + username + " time " + Date.now());
+                  retdict = {"status": "error", "error": "Media file " + media_id + " is already being used in another question/answer"};
                   //res.send(403, ); // file is already used
                 }
                 else {
