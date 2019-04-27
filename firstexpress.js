@@ -411,63 +411,66 @@ app.post('/questions/add', (req, res) => {
         if (req.body.media != null) {
           console.log("has media");
           // check each item of the media array to ensure that it exists in the Cassandra database, AND that it hasn't been used yet
-          for (var i = 0; i < req.body.media.length; i++) {
-            var media_id = req.body.media[i];
-            sodb.collection("media").findOne({"mid": media_id}, function(e2, r2) {
-              if (e2 || r2 == null) {
-                console.log("Nonexistent media");
-                res.send(403, {"status": "error", "error": "Media file does not exist for this ID"}); // file doesn't exist
-                return;
-              }
-              else if (r2.username != username) {
-                console.log("Bad username");
-                res.send(403, {"status": "error", "error": "Only the original asker can use their media"}); // Ensure file can only be used by original asker
-                return;
-              }
-              else if (r2.used) {
-                console.log("Already used");
-                res.send(403, {"status": "error", "error": "Media file is already being used in another question/answer"}); // file is already used
+          let promise = new Promise(function(resolve, reject) {
+            for (var i = 0; i < req.body.media.length; i++) {
+              var media_id = req.body.media[i];
+              sodb.collection("media").findOne({"mid": media_id}, function(e2, r2) {
+                if (e2 || r2 == null) {
+                  console.log("Nonexistent media");
+                  res.send(403, {"status": "error", "error": "Media file does not exist for this ID"}); // file doesn't exist
+                  return;
+                }
+                else if (r2.username != username) {
+                  console.log(r2);
+                  console.log("Bad username");
+                  res.send(403, {"status": "error", "error": "Only the original asker can use their media"}); // Ensure file can only be used by original asker
+                  return;
+                }
+                else if (r2.used) {
+                  console.log("Already used");
+                  res.send(403, {"status": "error", "error": "Media file is already being used in another question/answer"}); // file is already used
+                  return;
+                }
+                else {
+                  var new_used_dict = {$set: {used: true}}; // file isn't used and can be used for this question, mark it used
+                  sodb.collection("media").updateOne({"mid": media_id}, new_used_dict, function(e3, r3) {
+                    if (e3) throw e3;
+                    else console.log("Media exists");
+                  })
+                }
+              })
+            }
+            add_media = req.body.media;
+          });
+          promise.then(function(presult) {
+            var obj = {"id": id, "user": {"username": decoded.username, "reputation": u_rep}, "title": req.body.title, "body": req.body.body, "score": 0, "view_count": 1, "answer_count": 0, "timestamp": Date.now() / 1000, "media": add_media, "tags": req.body.tags, "accepted_answer_id": null};
+            sodb.collection("questions").insertOne(obj , function(err, result) {
+              if (err) {
+                console.log("Can't create question");
+                res.send(403, {"status": "error", "error": "Error creating question at this time"});
                 return;
               }
               else {
-                var new_used_dict = {$set: {used: true}}; // file isn't used and can be used for this question, mark it used
-                sodb.collection("media").updateOne({"mid": media_id}, new_used_dict, function(e3, r3) {
-                  if (e3) throw e3;
-                  else console.log("Media exists");
+                //console.log("Question successfully inserted into Questions collection");
+                sodb.collection("answers").insertOne({"id": id, "answers": []}, function(err2, res2) {
+                  if (err2) {
+                    console.log("err2: " + err2);
+                    throw err2;
+                  }
+                  //else console.log("Counterpart for this question in the answers collection also created.");
                 })
+                sodb.collection("views").insertOne({"id": id, "views": [], "upvotes": [], "downvotes": []}), function(err3, res3) {
+                  if (err3) {
+                    console.log("err2: " + err2);
+                    throw err3;
+                  }
+                  //else console.log("Views component for this question also created.");
+                }
+                res.json({"status":"OK", "id": id});
+                return;
               }
             })
-          }
-          add_media = req.body.media;
-
-          var obj = {"id": id, "user": {"username": decoded.username, "reputation": u_rep}, "title": req.body.title, "body": req.body.body, "score": 0, "view_count": 1, "answer_count": 0, "timestamp": Date.now() / 1000, "media": add_media, "tags": req.body.tags, "accepted_answer_id": null};
-          sodb.collection("questions").insertOne(obj , function(err, result) {
-            if (err) {
-              console.log("Can't create question");
-              res.send(403, {"status": "error", "error": "Error creating question at this time"});
-              return;
-            }
-            else {
-              //console.log("Question successfully inserted into Questions collection");
-              sodb.collection("answers").insertOne({"id": id, "answers": []}, function(err2, res2) {
-                if (err2) {
-                  console.log("err2: " + err2);
-                  throw err2;
-                }
-                //else console.log("Counterpart for this question in the answers collection also created.");
-              })
-              sodb.collection("views").insertOne({"id": id, "views": [], "upvotes": [], "downvotes": []}), function(err3, res3) {
-                if (err3) {
-                  console.log("err2: " + err2);
-                  throw err3;
-                }
-                //else console.log("Views component for this question also created.");
-              }
-              res.json({"status":"OK", "id": id});
-              return;
-            }
           })
-
         }
         else {
           var obj = {"id": id, "user": {"username": decoded.username, "reputation": u_rep}, "title": req.body.title, "body": req.body.body, "score": 0, "view_count": 1, "answer_count": 0, "timestamp": Date.now() / 1000, "media": add_media, "tags": req.body.tags, "accepted_answer_id": null};
