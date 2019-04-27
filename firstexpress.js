@@ -344,7 +344,7 @@ app.post('/login', (req, res) => {
         var token = jwt.sign({username: username}, 'so_clone');
         res.cookie('access_token', token);
 
-        console.log(req.session);
+        console.log(res);
 
         res.json(retdict);
       }
@@ -367,7 +367,7 @@ app.post('/questions/add', (req, res) => {
   console.log(req);
   console.log(req.headers);
   console.log(req.cookies);
-  
+
   // First, check that a user is logged in
   /*if (req.cookies.username == null) {
     res.send(403, {"status": "error", "error": "No user logged in"});
