@@ -417,7 +417,8 @@ app.post('/questions/add', (req, res) => {
             resolve("Test");
           })
           promise.then(function(presult1) {
-            for (var i = 0; i < req.body.media.length; i++) {
+            var not_error = true;
+            for (var i = 0; i < req.body.media.length && not_error; i++) {
               var media_id = req.body.media[i];
               sodb.collection("media").findOne({"mid": media_id}).then(function(e2, r2) {
                 if (e2 || r2 == null) {
@@ -445,8 +446,8 @@ app.post('/questions/add', (req, res) => {
                 }
               }).then(function (result) {
                 if (retdict['status'] == "error") {
-                  console.log("Sending error status: " + retdict['error']);
-                  res.status(403).send(retdict);
+                  not_error = false;
+                  return;
                 }
               })
             }
