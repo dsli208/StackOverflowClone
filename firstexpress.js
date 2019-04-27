@@ -418,6 +418,10 @@ app.post('/questions/add', (req, res) => {
                 res.send(403, {"status": "error", "error": "Media file does not exist for this ID"}); // file doesn't exist
                 return;
               }
+              else if (r2.username != username) {
+                res.send(403, {"status": "error", "error": "Only the original asker can use their media"}); // Ensure file can only be used by original asker
+                return;
+              }
               else if (r2.used) {
                 res.send(403, {"status": "error", "error": "Media file is already being used in another question/answer"}); // file is already used
                 return;
@@ -1330,7 +1334,7 @@ app.post("/addmedia", upload.single('content'), (req, res) => {
           res.send(403, {"status": "error", "error": "Media error"});
         }
         else {
-          sodb.collection("media").insertOne({"mid": fileId, "used": false}, function(err3, res3) {
+          sodb.collection("media").insertOne({"mid": fileId, "used": false, "username": username}, function(err3, res3) {
             if (err3) throw err3;
           })
           res.json({"status": "OK", "id": fileId});
