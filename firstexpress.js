@@ -439,6 +439,7 @@ app.post('/questions/add', (req, res) => {
                   //res.send(403, ); // Ensure file can only be used by original asker
                 }
                 else if (r2.used) {
+                  console.log(r2);
                   console.log("Already used");
                   retdict = {"status": "error", "error": "Media file is already being used in another question/answer"};
                   //res.send(403, ); // file is already used
@@ -453,11 +454,11 @@ app.post('/questions/add', (req, res) => {
               }).then(function (result) {
                 if (retdict['status'] == "error") {
                   not_error = false;
-                  return;
                 }
               })
             }
             add_media = req.body.media;
+            console.log(add_media);
           }).then(function(presult) {
             console.log("Now on to the last part of the promise");
             var obj = {"id": id, "user": {"username": decoded.username, "reputation": u_rep}, "title": req.body.title, "body": req.body.body, "score": 0, "view_count": 1, "answer_count": 0, "timestamp": Date.now() / 1000, "media": add_media, "tags": req.body.tags, "accepted_answer_id": null};
@@ -486,9 +487,11 @@ app.post('/questions/add', (req, res) => {
                 if (retdict['status'] == "error") {
                   console.log("Sending error status: " + retdict['error']);
                   res.status(403).send(retdict);
+                  return;
                 }
                 else {
                   res.status(200).send({"status":"OK", "id": id});
+                  return;
                 }
               }
             })
