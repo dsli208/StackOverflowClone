@@ -456,7 +456,8 @@ app.post('/questions/add', (req, res) => {
         // If the for loop completes, set the add_media var to our valid array of media ID's
         add_media = req.body.media;
         console.log(add_media);
-      }).then(function (presult) {
+      }
+    }).then(function (presult) {
           if (retdict['status'] == "error") {
             console.log("error status");
             not_error = false;
