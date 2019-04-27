@@ -371,7 +371,7 @@ app.post('/questions/add', (req, res) => {
   }*/
   jwt.verify(req.cookies.access_token, 'so_clone', function(err, decoded) {
     if (err) {
-      //console.log("No user logged in at add question");
+      console.log("No user logged in at add question");
       res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
     }
     else if (decoded.username == null) {
@@ -387,7 +387,8 @@ app.post('/questions/add', (req, res) => {
       res.send(403, {"status": "error", "error": "The question needs at least one tag"});
     }
     else {
-      var username = decoded.username
+      var username = decoded.username;
+      console.log(username);
       var id = randomstring.generate();
 
       // HOW TO MAKE SURE THEIR REPUTATION IS NOT ALWAYS 1???
@@ -395,6 +396,7 @@ app.post('/questions/add', (req, res) => {
         var u_rep = r1.reputation;
         var add_media = null;
         if (req.body.media != null) {
+          console.log("has media");
           add_media = req.body.media;
         }
         var obj = {"id": id, "user": {"username": decoded.username, "reputation": u_rep}, "title": req.body.title, "body": req.body.body, "score": 0, "view_count": 1, "answer_count": 0, "timestamp": Date.now() / 1000, "media": add_media, "tags": req.body.tags, "accepted_answer_id": null};
@@ -1294,11 +1296,13 @@ app.post("/addmedia", upload.single('content'), (req, res) => {
 
 app.get("/media/:id", (req, res) => {
   var id = req.params.id;
+  console.log("Media id: " + id);
 
   const query = "SELECT content FROM media WHERE id = '?'";
   const params = [id];
   cassandra_client.execute(query, params, {prepare: true}, function (err, result) {
     if (result == null || result == undefined) {
+      console.log("Not found");
       res.send(403, {"status": "error", "error": "No media file found"});
     }
     else {
