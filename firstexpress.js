@@ -1293,15 +1293,21 @@ app.post("/addmedia", upload.single('content'), (req, res) => {
 
       const query = 'INSERT INTO media (id, content, filename) VALUES (?, ?, ?)';
       const params = [fileId, content, req.file['filename']];
-      cassandra_client.execute(query, params, { prepare: true }, function (err) {
+      cassandra_client.execute(query, params, { prepare: true }, function (err2) {
         console.log("Hopeful blob content being added");
         console.log(content);
-        console.log(err); // if no error, undefined
+        console.log(err2); // if no error, undefined
         console.log("Inserted into Cluster?");
+        if (err2) {
+          res.send(403, {"status": "error", "error": "Media error"});
+        }
+        else {
+          res.json({"status": "OK", "id": fileId});
+        }
       });
     });
 
-    res.json({"status": "OK", "id": fileId});
+
   })
 })
 
