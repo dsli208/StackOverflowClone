@@ -358,6 +358,14 @@ app.post('/logout', (req, res) => {
   res.json({"status": "OK"});
 })
 
+app.get('/questions/add', (req, res) => {
+  var decoded = jwt.verify(req.cookies.access_token, 'so_clone');
+  if (decoded == null) res.send(403, "No user logged in right now");
+  else {
+    res.send("User logged in right now is: " + decoded.username);
+  }
+})
+
 app.post('/questions/add', (req, res) => {
   // Modify for handling media array
   //console.log("Session details for adding question:");
