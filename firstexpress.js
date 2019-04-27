@@ -102,6 +102,11 @@ MongoClient.connect(url, function(err, db) {
     if (err) throw err;
     console.log("Created answer list");
   })
+
+  sodb.createCollection("media", function(err, res) {
+    if (err) throw err;
+    console.log("Created media use records");
+  })
 });
 
 const cassandra_client = new cassandra.Client({
@@ -405,6 +410,25 @@ app.post('/questions/add', (req, res) => {
         var add_media = null;
         if (req.body.media != null) {
           console.log("has media");
+          // check each item of the media array to ensure that it exists in the Cassandra database, AND that it hasn't been used yet
+          for (int i = 0; i < req.body.media.length; i++) {
+            var media_id = req.body.media[i];
+            sodb.collection("media").findOne({"mid": media_id}, function(e2, r2) {
+              if (e2 || r2 == null) {
+                res.send(403, {"status": "error", "error": "Media file does not exist for this ID"}); // file doesn't exist
+              }
+              else if (r2.used) {
+                res.send(403, {"status": "error", "error": "Media file is already being used in another question/answer"}); // file is already used
+              }
+              else {
+                var new_used_dict = {$set: {used: true}}; // file isn't used and can be used for this question, mark it used
+                sodb.collection("media").updateOne({"mid": media_id}, new_used_dict, function(e3, r3) {
+                  if (e3) throw e3;
+                  else console.log("Media exists");
+                })
+              }
+            })
+          }
           add_media = req.body.media;
         }
         var obj = {"id": id, "user": {"username": decoded.username, "reputation": u_rep}, "title": req.body.title, "body": req.body.body, "score": 0, "view_count": 1, "answer_count": 0, "timestamp": Date.now() / 1000, "media": add_media, "tags": req.body.tags, "accepted_answer_id": null};
@@ -1302,6 +1326,9 @@ app.post("/addmedia", upload.single('content'), (req, res) => {
           res.send(403, {"status": "error", "error": "Media error"});
         }
         else {
+          sodb.collection("media").insertOne({"mid": id, "used": false}, function(err3, res3) {
+            if (err3) throw err3;
+          })
           res.json({"status": "OK", "id": fileId});
         }
       });
@@ -1331,6 +1358,7 @@ app.get("/media/:id", (req, res) => {
       //res.contentType(req.query.filename.split(".")[1]);
       console.log("Media result");
       console.log(result);
+
 		  res.send(200, result.rows[0].content);
     }
   });
