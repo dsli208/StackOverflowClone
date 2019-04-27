@@ -345,7 +345,7 @@ app.post('/login', (req, res) => {
         res.cookie('access_token', token);
 
         console.log("Res headers");
-        console.log(res.headers);
+        console.log(res.header()._headers);
 
         res.json(retdict);
       }
