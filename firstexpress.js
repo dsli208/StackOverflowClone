@@ -1326,7 +1326,7 @@ app.post("/addmedia", upload.single('content'), (req, res) => {
           res.send(403, {"status": "error", "error": "Media error"});
         }
         else {
-          sodb.collection("media").insertOne({"mid": id, "used": false}, function(err3, res3) {
+          sodb.collection("media").insertOne({"mid": fileId, "used": false}, function(err3, res3) {
             if (err3) throw err3;
           })
           res.json({"status": "OK", "id": fileId});
