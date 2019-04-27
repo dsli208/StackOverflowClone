@@ -374,16 +374,8 @@ app.get('/questions/add', (req, res) => {
 
 app.post('/questions/add', (req, res) => {
   // Modify for handling media array
-  //console.log("Session details for adding question:");
-  //console.log(req);
-  //console.log(req.headers);
-  //console.log(req.cookies);
-
-  // First, check that a user is logged in
-  /*if (req.cookies.username == null) {
-    res.send(403, {"status": "error", "error": "No user logged in"});
-  }*/
   jwt.verify(req.cookies.access_token, 'so_clone', function(err, decoded) {
+    // Base cases
     if (err) {
       console.log("No user logged in at add question");
       res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
@@ -408,107 +400,121 @@ app.post('/questions/add', (req, res) => {
       var retdict = {"status": "OK", "id": null};
 
       // HOW TO MAKE SURE THEIR REPUTATION IS NOT ALWAYS 1???
-      sodb.collection("verified_users").findOne({"username": decoded.username}, function(e1, r1) {
+      var u_rep = 0;
+      var add_media = null;
+      var not_error = true;
+      // First, get reputation
+      sodb.collection("verified_users").findOne({"username": decoded.username}).then(function(e1, r1) {
         var u_rep = r1.reputation;
-        var add_media = null;
+      }).then(function(e2, r2) { // Now, check if the question has media
         if (req.body.media != null) {
           console.log("has media");
-          // check each item of the media array to ensure that it exists in the Cassandra database, AND that it hasn't been used yet
-          var promise = new Promise(function(resolve, reject) {
-            console.log("First part of promise");
-            resolve("Test");
-          })
-          promise.then(function(presult1) {
-            console.log("Second part of promise");
-            var not_error = true;
-            for (var i = 0; i < req.body.media.length && not_error; i++) {
-              var media_id = req.body.media[i];
-              console.log("i = " + i + " and media id is " + media_id);
-              sodb.collection("media").findOne({"mid": media_id}).then(function(r2) {
-                /*if (e2) {
-                  console.log(r2);
-                  console.log("Nonexistent media - ERROR");
-                  retdict = {"status": "error", "error": "Media file does not exist for this ID - error"}; // file doesn't exist
-                  //res.send(403, {"status": "error", "error": "Media file does not exist for this ID"});
-                }*/
-                if (r2 == null) {
-                  console.log("Null r2");
-                  retdict = {"status": "error", "error": "Media file does not exist for this ID - error"}; // file doesn't exist
-                }
-                else if (r2.username != username) {
-                  console.log(r2);
-                  console.log("Bad username.  Media id " + media_id + " poster " + r2.username + " username " + username + " time " + Date.now());
-                  retdict = {"status": "error", "error": "Only the original asker can use their media"};
-                  //res.send(403, ); // Ensure file can only be used by original asker
-                }
-                else if (r2.used) {
-                  console.log(r2);
-                  console.log("Already used.  Media id " + media_id + " posted by " + r2.username + " username " + username + " time " + Date.now());
-                  retdict = {"status": "error", "error": "Media file " + media_id + " is already being used in another question/answer"};
-                  //res.send(403, ); // file is already used
-                }
-                else {
-                  var new_used_dict = {$set: {used: true}}; // file isn't used and can be used for this question, mark it used
-                  console.log("Media with id " + media_id + " exists and is being marked true at time " + Date.now() + " by user " + username);
-                  console.log(r2);
-                  sodb.collection("media").updateOne({"mid": media_id}, new_used_dict, function(e3, r3) {
-                    if (e3) throw e3;
-                    else {
-                      console.log("Media exists");
-                      //console.log(r3);
-                    }
-                  })
-                }
-              }).then(function (result) {
-                if (retdict['status'] == "error") {
-                  console.log("error status");
-                  not_error = false;
-                }
-              })
-              console.log("End of for loop iteration");
-            }
-            add_media = req.body.media;
-            console.log(add_media);
-          }).then(function(presult) {
-            console.log("Now on to the last part of the promise");
-            var obj = {"id": id, "user": {"username": decoded.username, "reputation": u_rep}, "title": req.body.title, "body": req.body.body, "score": 0, "view_count": 1, "answer_count": 0, "timestamp": Date.now() / 1000, "media": add_media, "tags": req.body.tags, "accepted_answer_id": null};
-            sodb.collection("questions").insertOne(obj , function(err, result) {
-              if (err) {
-                console.log("Can't create question");
-                retdict = {"status": "error", "error": "Error creating question at this time"};
-                //res.send(403, );
+          // If there is media, check each item of the media array to ensure that it exists in the Cassandra database, AND that it hasn't been used yet
+          for (var i = 0; i < req.body.media.length && not_error; i++) {
+            var media_id = req.body.media[i];
+            console.log("i = " + i + " and media id is " + media_id);
+
+            sodb.collection("media").findOne({"mid": media_id}).then(function(e2, r2) {
+              /*if (e2) {
+                console.log(r2);
+                console.log("Nonexistent media - ERROR");
+                retdict = {"status": "error", "error": "Media file does not exist for this ID - error"}; // file doesn't exist
+                //res.send(403, {"status": "error", "error": "Media file does not exist for this ID"});
+              }*/
+              if (r2 == null) {
+                console.log("Null r2");
+                retdict = {"status": "error", "error": "Media file does not exist for this ID - error"}; // file doesn't exist
+              }
+              else if (r2.username != username) {
+                console.log(r2);
+                console.log("Bad username.  Media id " + media_id + " poster " + r2.username + " username " + username + " time " + Date.now());
+                retdict = {"status": "error", "error": "Only the original asker can use their media"};
+                //res.send(403, ); // Ensure file can only be used by original asker
+              }
+              else if (r2.used) {
+                console.log(r2);
+                console.log("Already used.  Media id " + media_id + " posted by " + r2.username + " username " + username + " time " + Date.now());
+                retdict = {"status": "error", "error": "Media file " + media_id + " is already being used in another question/answer"};
+                //res.send(403, ); // file is already used
               }
               else {
-                //console.log("Question successfully inserted into Questions collection");
-                sodb.collection("answers").insertOne({"id": id, "answers": []}, function(err2, res2) {
-                  if (err2) {
-                    console.log("err2: " + err2);
-                    throw err2;
+                //var new_used_dict = {$set: {used: true}}; // file isn't used and can be used for this question, mark it used
+                sodb.collection("media").updateOne({"mid": media_id}, {$set: {used: true}}, function(e3, r3) {
+                  if (e3) throw e3;
+                  else if (retdict['status'] == "OK") {
+                    console.log("Media with id " + media_id + " exists and is being marked true at time " + Date.now() + " by user " + username);
+                    console.log(r2);
+                    console.log("Media exists");
+                    //console.log(r3);
                   }
-                  //else console.log("Counterpart for this question in the answers collection also created.");
                 })
-                sodb.collection("views").insertOne({"id": id, "views": [], "upvotes": [], "downvotes": []}), function(err3, res3) {
-                  if (err3) {
-                    console.log("err2: " + err2);
-                    throw err3;
-                  }
-                  //else console.log("Views component for this question also created.");
-                }
-                if (retdict['status'] == "error") {
-                  console.log("Sending error status: " + retdict['error']);
-                  res.status(403).send(retdict);
-                  return;
-                }
-                else {
-                  console.log("Status OK with media ");
-                  res.status(200).send({"status":"OK", "id": id});
-                  return;
-                }
               }
-            })
           })
+          console.log("End of for loop iteration");
         }
-        else {
+
+        // If the for loop completes, set the add_media var to our valid array of media ID's
+        add_media = req.body.media;
+        console.log(add_media);
+      }).then(function (presult) {
+          if (retdict['status'] == "error") {
+            console.log("error status");
+            not_error = false;
+          }
+      }).then(function(presult) {
+          console.log("Now on to the last part of the promise");
+
+          // Create the question
+          var obj = {"id": id, "user": {"username": decoded.username, "reputation": u_rep}, "title": req.body.title, "body": req.body.body, "score": 0, "view_count": 1, "answer_count": 0, "timestamp": Date.now() / 1000, "media": add_media, "tags": req.body.tags, "accepted_answer_id": null};
+          sodb.collection("questions").insertOne(obj , function(err, result) {
+            if (err) {
+              console.log("Can't create question");
+              retdict = {"status": "error", "error": "Error creating question at this time"};
+
+              if (retdict['status'] == "error") {
+                console.log("Sending error status: " + retdict['error']);
+                res.status(403).send(retdict);
+                return;
+              }
+              else {
+                console.log("Status OK with media ");
+                res.status(200).send({"status":"OK", "id": id});
+                return;
+              }
+            }
+            else {
+              //console.log("Question successfully inserted into Questions collection");
+              sodb.collection("answers").insertOne({"id": id, "answers": []}, function(err2, res2) {
+                if (err2) {
+                  console.log("err2: " + err2);
+                  throw err2;
+                }
+                //else console.log("Counterpart for this question in the answers collection also created.");
+              })
+              sodb.collection("views").insertOne({"id": id, "views": [], "upvotes": [], "downvotes": []}, function(err3, res3) {
+                if (err3) {
+                  console.log("err2: " + err2);
+                  throw err3;
+                }
+                //else console.log("Views component for this question also created.");
+              })
+
+              // Determine what status and JSON body to return at the very end
+              if (retdict['status'] == "error") {
+                console.log("Sending error status: " + retdict['error']);
+                res.status(403).send(retdict);
+                return;
+              }
+              else {
+                console.log("Status OK with media ");
+                res.status(200).send({"status":"OK", "id": id});
+                return;
+              }
+            }
+          })
+        })
+      }
+        /*else {
           //console.log("Else condition executing");
           var obj = {"id": id, "user": {"username": decoded.username, "reputation": u_rep}, "title": req.body.title, "body": req.body.body, "score": 0, "view_count": 1, "answer_count": 0, "timestamp": Date.now() / 1000, "media": add_media, "tags": req.body.tags, "accepted_answer_id": null};
           sodb.collection("questions").insertOne(obj , function(err, result) {
@@ -530,10 +536,8 @@ app.post('/questions/add', (req, res) => {
               return;
             }
           })
-        }
-      })
-    }
-  })
+        }*/
+    })
 })
 
 app.get('/questions/:id', (req, res) => {
