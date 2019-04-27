@@ -422,6 +422,7 @@ app.post('/questions/add', (req, res) => {
               var media_id = req.body.media[i];
               sodb.collection("media").findOne({"mid": media_id}).then(function(e2, r2) {
                 if (e2 || r2 == null) {
+                  console.log(e2); console.log(r2);
                   console.log("Nonexistent media");
                   retdict = {"status": "error", "error": "Media file does not exist for this ID"}; // file doesn't exist
                   //res.send(403, {"status": "error", "error": "Media file does not exist for this ID"});
