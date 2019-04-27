@@ -419,25 +419,22 @@ app.post('/questions/add', (req, res) => {
           promise.then(function(presult1) {
             for (var i = 0; i < req.body.media.length; i++) {
               var media_id = req.body.media[i];
-              sodb.collection("media").findOne({"mid": media_id}, function(e2, r2) {
+              sodb.collection("media").findOne({"mid": media_id}).then(function(e2, r2) {
                 if (e2 || r2 == null) {
                   console.log("Nonexistent media");
                   retdict = {"status": "error", "error": "Media file does not exist for this ID"}; // file doesn't exist
                   //res.send(403, {"status": "error", "error": "Media file does not exist for this ID"});
-                  break;
                 }
                 else if (r2.username != username) {
                   console.log(r2);
                   console.log("Bad username");
                   retdict = {"status": "error", "error": "Only the original asker can use their media"};
                   //res.send(403, ); // Ensure file can only be used by original asker
-                  break;
                 }
                 else if (r2.used) {
                   console.log("Already used");
                   retdict = {"status": "error", "error": "Media file is already being used in another question/answer"};
                   //res.send(403, ); // file is already used
-                  break;
                 }
                 else {
                   var new_used_dict = {$set: {used: true}}; // file isn't used and can be used for this question, mark it used
@@ -445,6 +442,10 @@ app.post('/questions/add', (req, res) => {
                     if (e3) throw e3;
                     else console.log("Media exists");
                   })
+                }
+              }).then(function (result) {
+                if (retdict['status'] == "error") {
+                  break;
                 }
               })
             }
