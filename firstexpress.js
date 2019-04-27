@@ -445,7 +445,8 @@ app.post('/questions/add', (req, res) => {
                 }
               }).then(function (result) {
                 if (retdict['status'] == "error") {
-                  break;
+                  console.log("Sending error status: " + retdict['error']);
+                  res.status(403).send(retdict);
                 }
               })
             }
