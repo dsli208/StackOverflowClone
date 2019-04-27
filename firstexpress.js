@@ -476,6 +476,7 @@ app.post('/questions/add', (req, res) => {
                   //else console.log("Views component for this question also created.");
                 }
                 if (retdict.status == "error") {
+                  console.log("Sending error status");
                   res.send(403, retdict);
                 }
                 else {
