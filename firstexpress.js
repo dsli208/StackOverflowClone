@@ -515,6 +515,7 @@ app.post('/questions/add', (req, res) => {
                   return;
                 }
               }
+            }
           }
           catch (e) {
             res.status(403).send({"status": "error", "error": "Function error"});
