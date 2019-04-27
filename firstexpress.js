@@ -1312,7 +1312,11 @@ app.get("/media/:id", (req, res) => {
   const query = "SELECT content FROM media WHERE id = '?'";
   const params = [id];
   cassandra_client.execute(query, params, {prepare: true}, function (err, result) {
-    if (result == null || result == undefined || err) {
+    if (err) {
+      console.log(err);
+      res.send(403, {"status": "error", "error": "No media file found"});
+    }
+    else if (result == null || result == undefined) {
       console.log("Not found");
       res.send(403, {"status": "error", "error": "No media file found"});
     }
