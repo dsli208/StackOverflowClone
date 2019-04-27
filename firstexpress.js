@@ -1309,7 +1309,7 @@ app.get("/media/:id", (req, res) => {
   var id = req.params.id;
   console.log("Media id: " + id);
 
-  const query = "SELECT content FROM media WHERE id = '?'";
+  const query = "SELECT content FROM media WHERE id = ?";
   const params = [id];
   cassandra_client.execute(query, params, {prepare: true}, function (err, result) {
     if (err) {
