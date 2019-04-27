@@ -416,9 +416,11 @@ app.post('/questions/add', (req, res) => {
             sodb.collection("media").findOne({"mid": media_id}, function(e2, r2) {
               if (e2 || r2 == null) {
                 res.send(403, {"status": "error", "error": "Media file does not exist for this ID"}); // file doesn't exist
+                return;
               }
               else if (r2.used) {
                 res.send(403, {"status": "error", "error": "Media file is already being used in another question/answer"}); // file is already used
+                return;
               }
               else {
                 var new_used_dict = {$set: {used: true}}; // file isn't used and can be used for this question, mark it used
@@ -435,6 +437,7 @@ app.post('/questions/add', (req, res) => {
         sodb.collection("questions").insertOne(obj , function(err, result) {
           if (err) {
             res.send(403, {"status": "error", "error": "Error creating question at this time"});
+            return;
           }
           else {
             //console.log("Question successfully inserted into Questions collection");
@@ -447,6 +450,7 @@ app.post('/questions/add', (req, res) => {
               //else console.log("Views component for this question also created.");
             }
             res.json({"status":"OK", "id": id});
+            return;
           }
         })
       })
