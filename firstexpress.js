@@ -355,7 +355,7 @@ app.post('/login', (req, res) => {
 app.post('/logout', (req, res) => {
   console.log("Logout called");
   req.session.username = null;
-  res.clearCookie("token"); // With cookies, how to change to their equivalent?
+  res.clearCookie("access_token"); // With cookies, how to change to their equivalent?
   user = null;
 
   res.json({"status": "OK"});
@@ -364,8 +364,10 @@ app.post('/logout', (req, res) => {
 app.post('/questions/add', (req, res) => {
   // Modify for handling media array
   console.log("Session details for adding question:");
-  //console.log(req.session);
+  console.log(req);
+  console.log(req.headers);
   console.log(req.cookies);
+  
   // First, check that a user is logged in
   /*if (req.cookies.username == null) {
     res.send(403, {"status": "error", "error": "No user logged in"});
