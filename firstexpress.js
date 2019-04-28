@@ -754,20 +754,12 @@ app.post('/questions/:id/answers/add', (req, res) => {
           else {
             res.json({"status": "OK", "id": answerid});
           }
-
-
-          /*// Insert into answer list -- works?
-          sodb.collection("answer_list").insertOne({"id": answerid, "media": null, "upvotes": [], "downvotes": []}, function(err3, res3) {
-            if (err3) throw err3;
-            else {
-              console.log("Answer added to list");
-            }
-          })*/
         }
       }
     }
     catch (err) {
-      console.log("Error: " + err);
+      throw err;
+      //console.log("Error: " + err);
       res.send(403, {"status": "error", "error": "Error - add answer"});
     }
   }
