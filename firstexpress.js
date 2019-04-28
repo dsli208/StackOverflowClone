@@ -555,12 +555,14 @@ app.get('/questions/:id', (req, res) => {
       }
 
       verify_user(req);
-      
+
       sodb.collection("views").findOne({"id": id}).then(function(res4) {
         var views = res4.views;
         if (views.indexOf(username) < 0) {
+          console.log("Old view count: " + views.length);
           views.push(username);
           new_view_count = views.length;
+          console.log("New view count " + new_view_count);
 
           var new_views_dict = {$set: {views: views}};
 
