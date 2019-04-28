@@ -542,6 +542,8 @@ app.get('/questions/:id', (req, res) => {
       else { // question found
         console.log("Question found");
         var new_view_count = result.view_count;
+        console.log("View count: " + new_view_count);
+
         // Update view Count - if the user is NEW
 
         // First determine if user is new - get username
@@ -556,6 +558,8 @@ app.get('/questions/:id', (req, res) => {
           }
         }
         verify_user(req);
+
+        console.log(username);
 
         var views_collection = sodb.collection("views");
         var r2 = await views_collection.findOne({"id": id});
@@ -585,7 +589,7 @@ app.get('/questions/:id', (req, res) => {
         res.json({"status": "OK", "question": r5});
       }
     }
-    catch (e) {
+    catch (err) {
       res.send(403, {"status": "error", "error": "Error"});
     }
   }
