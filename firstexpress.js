@@ -16,6 +16,9 @@ app.use(bodyParser.urlencoded({limit: '100mb', extended: true}))
 app.use(express.json());
 
 const ip = require('ip');
+const request_ip = require('request-ip');
+app.use(request_ip.mw())
+
 const MongoStore = require('connect-mongo')(session);
 const cookie = require('cookie');
 const jwt = require('jsonwebtoken');
@@ -532,7 +535,7 @@ app.get('/questions/:id', (req, res) => {
       var decoded = jwt.decode(req.cookies.access_token);
       console.log(decoded);
       if (decoded == null) {
-        username = ip.address();
+        username = requestIp.getClientIp(req);
       }
       else {
         username = decoded.username;
@@ -561,7 +564,7 @@ app.get('/questions/:id', (req, res) => {
 
         if (username == undefined || username == null) {
           console.log("Username still undefined");
-          username = ip.address();
+          username = requestIp.getClientIp(req);
         }
 
         var views_collection = sodb.collection("views");
@@ -596,7 +599,7 @@ app.get('/questions/:id', (req, res) => {
     catch (err) {
       if (err.name == "JsonWebTokenError") {
         console.log(err);
-        var username = ip.address();
+        var username = requestIp.getClientIp(req);
         console.log("Username " + username);
 
         // get id
@@ -620,7 +623,7 @@ app.get('/questions/:id', (req, res) => {
 
           if (username == undefined || username == null) {
             console.log("Username still undefined");
-            username = ip.address();
+            username = requestIp.getClientIp(req);
           }
 
           var views_collection = sodb.collection("views");
