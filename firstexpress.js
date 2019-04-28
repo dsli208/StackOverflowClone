@@ -665,7 +665,7 @@ app.get('/questions/:id', (req, res) => {
 })
 
 app.post('/questions/:id/answers/add', (req, res) => {
-  const get_questions_func = async function(req) {
+  const get_answers_func = async function(req) {
     try {
       console.log("Session for add answer");
       var id = req.params.id;
@@ -771,6 +771,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
       res.send(403, {"status": "error", "error": "Error"});
     }
   }
+  get_answers_func(req);
 })
 
 app.get('/questions/:id/answers', (req, res) => {
