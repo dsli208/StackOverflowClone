@@ -1564,7 +1564,7 @@ app.get("/reset", (req, res) => {
     if (err) throw err;
     else {
       console.log("DB reset");
-      mongodb = db;
+      //mongodb = db;
       sodb = mongodb.db("stackoverflowclone");
       console.log("Database created!");
 
