@@ -968,7 +968,7 @@ app.get('/user/:username', (req, res) => {
       }*/
       var username = req.params.username;
       var verified_users_collection = sodb.collection("verified_users");
-      var result = await verified_users_collection.findOnefindOne({username: username});
+      var result = await verified_users_collection.findOne({username: username});
       if (result == null) {
         res.send(403, {"status": "error", "error": "User does not exist"});
       }
