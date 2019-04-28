@@ -1565,7 +1565,7 @@ app.get("/reset", (req, res) => {
     else {
       console.log("DB reset");
       //mongodb = db;
-      sodb = mongodb.db("stackoverflowclone");
+      sodb = db.db("stackoverflowclone");
       console.log("Database created!");
 
       // Set up GridFS for large media/file storage
