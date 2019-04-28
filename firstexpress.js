@@ -544,13 +544,18 @@ app.get('/questions/:id', (req, res) => {
       // Update view Count - if the user is NEW
       // First determine if user is new
       var username;
-      if (req.cookies.access_token == null) {
+      const verify_user = async function(req) {
+        try {
+          var decoded = jwt.verify(req.cookies.access_token, 'so-clone');
+          username = decoded.username;
+        }
+        catch (e) {
           username = ip.address();
+        }
       }
-      else {
-        var decoded = jwt.verify(req.cookies.access_token, 'so-clone');
-        username = decoded.username;
-      }
+
+      verify_user(req);
+      
       sodb.collection("views").findOne({"id": id}).then(function(res4) {
         var views = res4.views;
         if (views.indexOf(username) < 0) {
