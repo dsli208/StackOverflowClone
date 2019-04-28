@@ -592,7 +592,8 @@ app.get('/questions/:id', (req, res) => {
         res.json({"status": "OK", "question": r5});
       }
     }
-    catch (err if err.name == "JsonWebTokenError") {
+    catch (err) {
+      if (if err.name == "JsonWebTokenError") {
         console.log(err);
         var username = decoded.username;
         console.log("Username " + username);
@@ -649,9 +650,10 @@ app.get('/questions/:id', (req, res) => {
           console.log(r5);
           res.json({"status": "OK", "question": r5});
         }
-    }
-    catch (err) {
-      res.send(403, {"status": "error", "error": "Error"});
+      }
+      else {
+        res.send(403, {"status": "error", "error": "Error"});
+      }
     }
   }
 
