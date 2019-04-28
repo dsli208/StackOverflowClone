@@ -535,7 +535,7 @@ app.get('/questions/:id', (req, res) => {
       var decoded = jwt.decode(req.cookies.access_token);
       console.log(decoded);
       if (decoded == null) {
-        username = requestIp.getClientIp(req);
+        username = request_ip.getClientIp(req);
       }
       else {
         username = decoded.username;
@@ -564,7 +564,7 @@ app.get('/questions/:id', (req, res) => {
 
         if (username == undefined || username == null) {
           console.log("Username still undefined");
-          username = requestIp.getClientIp(req);
+          username = request_ip.getClientIp(req);
         }
 
         var views_collection = sodb.collection("views");
@@ -599,7 +599,7 @@ app.get('/questions/:id', (req, res) => {
     catch (err) {
       if (err.name == "JsonWebTokenError") {
         console.log(err);
-        var username = requestIp.getClientIp(req);
+        var username = request_ip.getClientIp(req);
         console.log("Username " + username);
 
         // get id
@@ -623,7 +623,7 @@ app.get('/questions/:id', (req, res) => {
 
           if (username == undefined || username == null) {
             console.log("Username still undefined");
-            username = requestIp.getClientIp(req);
+            username = request_ip.getClientIp(req);
           }
 
           var views_collection = sodb.collection("views");
