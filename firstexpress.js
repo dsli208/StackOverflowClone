@@ -752,6 +752,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
 
           var answers_arr = r1.answers;
           answers_arr.push(answerobj);
+          console.log(answers_arr);
           var new_answer_arr = {$set: {answers: answers_arr}};
 
           // Update DB Entry
