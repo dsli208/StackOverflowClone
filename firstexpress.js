@@ -533,7 +533,7 @@ app.get('/questions/:id', (req, res) => {
       // First determine if user is new - get username
       var username;
       var decoded = jwt.decode(req.cookies.access_token);
-      console.log(decoded);
+      //console.log(decoded);
       if (decoded == null) {
         username = request_ip.getClientIp(req);
       }
@@ -541,50 +541,50 @@ app.get('/questions/:id', (req, res) => {
         username = decoded.username;
       }
 
-      console.log("Username " + username);
+      //console.log("Username " + username);
 
       // get id
       var id = req.params.id;
-      console.log("ID: " + id);
+      //console.log("ID: " + id);
 
       // find question with that id
       var questions_collection = sodb.collection("questions");
       var r1 = await questions_collection.findOne({"id": id});
       if (r1 == null) { // no question with that id
-        console.log("Question not found");
+        //console.log("Question not found");
         res.send(403, {"status": "error", "error": "Question not found"});
         return;
       }
       else { // question found
-        console.log("Question found");
+        //console.log("Question found");
         var new_view_count = r1.view_count;
-        console.log("View count: " + new_view_count);
+        //console.log("View count: " + new_view_count);
 
         // Update view Count - if the user is NEW
 
         if (username == undefined || username == null) {
-          console.log("Username still undefined");
+          //console.log("Username still undefined");
           username = request_ip.getClientIp(req);
         }
 
         var views_collection = sodb.collection("views");
         var r2 = await views_collection.findOne({"id": id});
         var views = r2.views;
-        console.log("Views " + views);
+        //console.log("Views " + views);
         var new_view_count = views.length;
 
         // if this condition triggers, user is new - increment view count
         if (views.indexOf(username) < 0) {
           // get old view count
-          console.log("Old view count: " + views.length);
+          //console.log("Old view count: " + views.length);
           views.push(username); // insert new username into views array
           new_view_count = views.length;
-          console.log("New view count " + new_view_count);
+          //console.log("New view count " + new_view_count);
 
           // Store new views dictionary
           var new_views_dict = {$set: {views: views}};
           var r3 = await views_collection.updateOne({"id": id}, new_views_dict);
-          console.log("New user, view count incremented");
+          //console.log("New user, view count incremented");
           var new_view_count_dict = {$set: {view_count: new_view_count}};
           var r4 = await questions_collection.updateOne({"id": id}, new_view_count_dict);
 
@@ -592,7 +592,7 @@ app.get('/questions/:id', (req, res) => {
 
         // Ensure question data is properly updated
         var r5 = await questions_collection.findOne({"id": id});
-        console.log(r5);
+        //console.log(r5);
         res.json({"status": "OK", "question": r5});
       }
     }
@@ -600,11 +600,11 @@ app.get('/questions/:id', (req, res) => {
       if (err.name == "JsonWebTokenError") {
         console.log(err);
         var username = request_ip.getClientIp(req);
-        console.log("Username " + username);
+        //console.log("Username " + username);
 
         // get id
         var id = req.params.id;
-        console.log("ID: " + id);
+        //console.log("ID: " + id);
 
         // find question with that id
         var questions_collection = sodb.collection("questions");
@@ -615,35 +615,35 @@ app.get('/questions/:id', (req, res) => {
           return;
         }
         else { // question found
-          console.log("Question found");
+          //console.log("Question found");
           var new_view_count = r1.view_count;
-          console.log("View count: " + new_view_count);
+          //console.log("View count: " + new_view_count);
 
           // Update view Count - if the user is NEW
 
           if (username == undefined || username == null) {
-            console.log("Username still undefined");
+            //console.log("Username still undefined");
             username = request_ip.getClientIp(req);
           }
 
           var views_collection = sodb.collection("views");
           var r2 = await views_collection.findOne({"id": id});
           var views = r2.views;
-          console.log("Views " + views);
+          //console.log("Views " + views);
           var new_view_count = views.length;
 
           // if this condition triggers, user is new - increment view count
           if (views.indexOf(username) < 0) {
             // get old view count
-            console.log("Old view count: " + views.length);
+            //console.log("Old view count: " + views.length);
             views.push(username); // insert new username into views array
             new_view_count = views.length;
-            console.log("New view count " + new_view_count);
+            //console.log("New view count " + new_view_count);
 
             // Store new views dictionary
             var new_views_dict = {$set: {views: views}};
             var r3 = await views_collection.updateOne({"id": id}, new_views_dict);
-            console.log("New user, view count incremented");
+            //console.log("New user, view count incremented");
             var new_view_count_dict = {$set: {view_count: new_view_count}};
             var r4 = await questions_collection.updateOne({"id": id}, new_view_count_dict);
 
@@ -651,7 +651,7 @@ app.get('/questions/:id', (req, res) => {
 
           // Ensure question data is properly updated
           var r5 = await questions_collection.findOne({"id": id});
-          console.log(r5);
+          //console.log(r5);
           res.json({"status": "OK", "question": r5});
         }
       }
