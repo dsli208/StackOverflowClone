@@ -530,6 +530,7 @@ app.get('/questions/:id', (req, res) => {
       // First determine if user is new - get username
       var username;
       var decoded = await jwt.verify(req.cookies.access_token, 'so-clone');
+      console.log(decoded);
       if (decoded == null) {
         username = decoded.username;
       }
