@@ -764,6 +764,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
             res.send(403, retdict);
           }
           else {
+            console.log("Answer added: " + answerid);
             res.json({"status": "OK", "id": answerid});
           }
         }
@@ -779,23 +780,29 @@ app.post('/questions/:id/answers/add', (req, res) => {
 })
 
 app.get('/questions/:id/answers', (req, res) => {
-  var id = req.params.id;
+    const get_answers_func = async function(req) {
+      try {
+        var id = req.params.id;
+        console.log(id);
 
-  sodb.collection("answers").findOne({"id": id}, function(err, result) {
-    if (err) {
-      console.log("Error");
-      res.send(403, {"status": "error", "error": "Error - get answer"});
+        var answers_collection = sodb.collection("answers");
+        var result = answers_collection.findOne({"id": id});
+        if (result == null) {
+          console.log("Nothing found");
+          res.send(403, {"status": "error", "error": "No such question exists with this ID"});
+        }
+        else {
+          console.log(result.answers);
+          res.json({"status": "OK", "answers": result.answers});
+        }
     }
-    else if (result == null) {
-      console.log("Nothing found");
-      res.send(403, {"status": "error", "error": "No such question exists with this ID"});
+      catch (e) {
+        console.log("Error");
+        res.send(403, {"status": "error", "error": "Error - get answer"});
+      }
     }
-    else {
-      console.log(result.answers);
-
-      res.json({"status": "OK", "answers": result.answers});
-    }
-  })
+    get_answers_func(req);
+  }
 })
 
 const search_by_options = {
