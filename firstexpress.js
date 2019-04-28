@@ -142,24 +142,6 @@ nodemailer.createTestAccount((err, account) => {
     console.log("Created Test E-Mail Account");
 });
 
-// Adding session support
-// init
-/*app.use(session({
-  secret: 'keyboard cat',
-  store: new MongoStore({url: url + "stackoverflowclone", collection: "sessions"}),
-  resave: false,
-  saveUninitialized: true,
-  cookie: {}
-}))
-
-app.use(function (req, res, next) {
-  if (!req.session.views) {
-    req.session.views = {};
-  }
-
-  next();
-})*/
-
 cassandra_client.connect(function (err) {
   console.log("Connected to Cassandra DB");
   console.log(Object.keys(cassandra_client.metadata.keyspaces));
@@ -764,6 +746,10 @@ app.post('/questions/:id/answers/add', (req, res) => {
             res.send(403, retdict);
           }
           else {
+            var r6 = await answers_collection.findOne({"id": id});
+            if (r6 != null) {
+              console.log(r6);
+            }
             console.log("Answer added: " + answerid);
             res.json({"status": "OK", "id": answerid});
           }
@@ -1570,6 +1556,70 @@ app.get("/media/:id", (req, res) => {
 		  res.send(200, result.rows[0].content);
     }
   });
+})
+
+// Reset functions
+app.get("/reset", (req, res) {
+  sodb.dropDatabase(function(err, db) {
+    if (err) throw err;
+    else {
+      console.log("DB reset");
+      mongodb = db;
+      sodb = mongodb.db("stackoverflowclone");
+      console.log("Database created!");
+
+      // Set up GridFS for large media/file storage
+      grid = new Grid(db, 'fs');
+      //gridfs_bucket = new require('mongodb').GridFSBucket(db);
+
+      // Create collections for Users, then Verified Users
+      sodb.createCollection("users", function(err, res) {
+        if (err) throw err;
+        console.log("Users Collection created!");
+        //db.close();
+      });
+
+      sodb.createCollection("verified_users", function(err, res) {
+        if (err) throw err;
+        console.log("Verified Users Collection created!");
+        //db.close();
+      });
+
+      sodb.createCollection("questions", function(err, res) {
+        if (err) throw err;
+        console.log("Questions collection created");
+      })
+
+      sodb.createCollection("answers", function(err, res) {
+        if (err) throw err;
+        console.log("Answers collection created");
+      })
+
+      sodb.createCollection("views", function(err, res) {
+        if (err) throw err;
+        console.log("Views collection created");
+      })
+
+      sodb.createCollection("userbackup", function(err, res) {
+        if (err) throw err;
+        console.log("Backup user collection created");
+      })
+
+      sodb.createCollection("answer_list", function(err, res) {
+        if (err) throw err;
+        console.log("Created answer list");
+      })
+
+      sodb.createCollection("media", function(err, res) {
+        if (err) throw err;
+        console.log("Created media use records");
+      })
+    }
+  })
+})
+
+app.post("/reset", (req, res) {
+
 })
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
