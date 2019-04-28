@@ -304,7 +304,7 @@ app.post('/verify', (req, res) => {
           })
             }).catch(function(err) {
               //console.log("error");
-              retdict = {"status": "error", "error": "Error"};
+              retdict = {"status": "error", "error": "Error - verify"};
               res.send(403, retdict);
             })
 
@@ -656,7 +656,7 @@ app.get('/questions/:id', (req, res) => {
         }
       }
       else {
-        res.send(403, {"status": "error", "error": "Error"});
+        res.send(403, {"status": "error", "error": "Error - Get question"});
       }
     }
   }
@@ -767,8 +767,8 @@ app.post('/questions/:id/answers/add', (req, res) => {
       }
     }
     catch (err) {
-      console.log("Error");
-      res.send(403, {"status": "error", "error": "Error"});
+      console.log("Error: " + err);
+      res.send(403, {"status": "error", "error": "Error - add answer"});
     }
   }
   get_answers_func(req);
@@ -780,7 +780,7 @@ app.get('/questions/:id/answers', (req, res) => {
   sodb.collection("answers").findOne({"id": id}, function(err, result) {
     if (err) {
       console.log("Error");
-      res.send(403, {"status": "error", "error": "Error"});
+      res.send(403, {"status": "error", "error": "Error - get answer"});
     }
     else if (result == null) {
       console.log("Nothing found");
@@ -900,7 +900,7 @@ app.post('/search', (req, res) => {
         }
         else {
           console.log("Error");
-          res.send(403, {"status": "error", "error": "Error"});
+          res.send(403, {"status": "error", "error": "Error - search"});
         }
       }
     })
