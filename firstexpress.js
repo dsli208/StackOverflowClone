@@ -769,8 +769,8 @@ app.post('/questions/:id/answers/add', (req, res) => {
       }
     }
     catch (err) {
-      //throw err;
-      console.log("Error: " + err);
+      throw err;
+      //console.log("Error: " + err);
       res.send(403, {"status": "error", "error": "Error - add answer"});
     }
   }
