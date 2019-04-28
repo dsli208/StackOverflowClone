@@ -528,8 +528,15 @@ app.get('/questions/:id', (req, res) => {
   const get_questions_func = async function(req) {
     try {
       // First determine if user is new - get username
+      var username;
       var decoded = jwt.verify(req.cookies.access_token, 'so-clone');
-      var username = decoded.username;
+      if (decoded == null) {
+        username = decoded.username;
+      }
+      else {
+        username = ip.address();
+      }
+
       console.log("Username " + username);
 
       // get id
@@ -585,9 +592,8 @@ app.get('/questions/:id', (req, res) => {
         res.json({"status": "OK", "question": r5});
       }
     }
-    catch (err) {
-      console.log(err);
-      if (err.name == 'JsonWebTokenError') {
+    catch (err if err.name == "JsonWebTokenError") {
+        console.log(err);
         var username = decoded.username;
         console.log("Username " + username);
 
@@ -643,12 +649,8 @@ app.get('/questions/:id', (req, res) => {
           console.log(r5);
           res.json({"status": "OK", "question": r5});
         }
-      }
-      else {
-        res.send(403, {"status": "error", "error": "Error"});
-      }
     }
-    catch (err2) {
+    catch (err) {
       res.send(403, {"status": "error", "error": "Error"});
     }
   }
