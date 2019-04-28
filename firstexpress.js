@@ -1616,6 +1616,7 @@ app.get("/reset", (req, res) => {
       })
     }
   })
+  res.send("DB reset");
 })
 
 
