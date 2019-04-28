@@ -548,9 +548,9 @@ app.get('/questions/:id', (req, res) => {
 
         // First determine if user is new - get username
         var username;
-        const verify_user = async function(req) {
+        const verify_user = async function(req, username) {
           try {
-            var decoded = jwt.verify(req.cookies.access_token, 'so-clone');
+            var decoded = await jwt.verify(req.cookies.access_token, 'so-clone');
             username = decoded.username;
           }
           catch (e) {
@@ -559,7 +559,11 @@ app.get('/questions/:id', (req, res) => {
         }
         verify_user(req);
 
-        console.log(username);
+        if (username == undefined || username == null) {
+          username = ip.address();
+        }
+
+        console.log("Username " + username);
 
         var views_collection = sodb.collection("views");
         var r2 = await views_collection.findOne({"id": id});
