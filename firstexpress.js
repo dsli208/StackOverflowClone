@@ -568,14 +568,14 @@ app.get('/questions/:id', (req, res) => {
         var views_collection = sodb.collection("views");
         var r2 = await views_collection.findOne({"id": id});
         var views = r2.views;
-        var new_view_count = 1 + views.length;
+        var new_view_count = views.length;
 
         // if this condition triggers, user is new - increment view count
         if (views.indexOf(username) < 0) {
           // get old view count
           console.log("Old view count: " + views.length);
           views.push(username); // insert new username into views array
-          new_view_count = 1 + views.length;
+          new_view_count = views.length;
           console.log("New view count " + new_view_count);
 
           // Store new views dictionary
