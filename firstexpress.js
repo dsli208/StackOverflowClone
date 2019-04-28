@@ -551,15 +551,19 @@ app.get('/questions/:id', (req, res) => {
         const verify_user = async function(req, username) {
           try {
             var decoded = await jwt.verify(req.cookies.access_token, 'so-clone');
+            console.log("JSON Token Verified");
+            console.log(decoded);
             username = decoded.username;
           }
           catch (e) {
+            console.log("JSON Token Error");
             username = ip.address();
           }
         }
         verify_user(req);
 
         if (username == undefined || username == null) {
+          console.log("Username still undefined");
           username = ip.address();
         }
 
@@ -568,6 +572,7 @@ app.get('/questions/:id', (req, res) => {
         var views_collection = sodb.collection("views");
         var r2 = await views_collection.findOne({"id": id});
         var views = r2.views;
+        console.log(views);
         var new_view_count = views.length;
 
         // if this condition triggers, user is new - increment view count
