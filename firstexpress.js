@@ -583,12 +583,12 @@ app.get('/questions/:id', (req, res) => {
           var r3 = await views_collection.updateOne({"id": id}, new_views_dict);
           console.log("New user, view count incremented");
           var new_view_count_dict = {$set: {view_count: new_view_count}};
-          var r4 = questions_collection.updateOne({"id": id}, new_view_count_dict);
+          var r4 = await questions_collection.updateOne({"id": id}, new_view_count_dict);
 
         }
 
         // Ensure question data is properly updated
-        var r5 = questions_collection.findOne({"id": id});
+        var r5 = await questions_collection.findOne({"id": id});
         console.log(r5);
         res.json({"status": "OK", "question": r5});
       }
