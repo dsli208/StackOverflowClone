@@ -961,12 +961,12 @@ app.delete('/questions/:id', (req, res) => {
 app.get('/user/:username', (req, res) => {
   const get_user_func = async function(req) {
     try {
-      var decoded = jwt.verify(req.cookies.access_token, 'so_clone');
+      /*var decoded = jwt.verify(req.cookies.access_token, 'so_clone');
       if (decoded == null) res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
       else if (decoded.username == null) {
         res.send(403, {"status": "error", "error": "No username given"});
       }
-      var username = decoded.username;
+      var username = decoded.username;*/
 
       sodb.collection("verified_users").findOne({username: username}, function(err, result) {
         if (err) {
