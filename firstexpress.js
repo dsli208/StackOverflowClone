@@ -695,6 +695,8 @@ app.post('/questions/:id/answers/add', (req, res) => {
         else {
           var answerid = randomstring.generate();
           var a_media = null;
+          var not_error = true;
+          var retdict = {"status": "OK"};
           if (req.body.media != null) {
             console.log("has media");
             // If there is media, check each item of the media array to ensure that it exists in the Cassandra database, AND that it hasn't been used yet
@@ -734,6 +736,12 @@ app.post('/questions/:id/answers/add', (req, res) => {
                 })
               }
 
+              console.log("Checking for error status");
+              if (retdict['status'] == "error") {
+                console.log("error status");
+                not_error = false;
+              }
+
               console.log("End of for loop iteration");
             }
             // If the for loop completes, set the add_media var to our valid array of media ID's
@@ -751,6 +759,9 @@ app.post('/questions/:id/answers/add', (req, res) => {
           if (r5 == null) {
             res.send(403, {"status": "error", "error": "Error when updating answers database"});
           }
+          else if (redict['status'] == "error") {
+            res.send(403, retdict);
+          }
           else {
             res.json({"status": "OK", "id": answerid});
           }
@@ -758,8 +769,8 @@ app.post('/questions/:id/answers/add', (req, res) => {
       }
     }
     catch (err) {
-      throw err;
-      //console.log("Error: " + err);
+      //throw err;
+      console.log("Error: " + err);
       res.send(403, {"status": "error", "error": "Error - add answer"});
     }
   }
