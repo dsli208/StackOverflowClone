@@ -787,7 +787,7 @@ app.get('/questions/:id/answers', (req, res) => {
         console.log(id);
 
         var answers_collection = sodb.collection("answers");
-        var result = answers_collection.findOne({"id": id});
+        var result = await answers_collection.findOne({"id": id});
         if (result == null) {
           console.log("Nothing found");
           res.send(403, {"status": "error", "error": "No such question exists with this ID"});
