@@ -541,7 +541,7 @@ app.get('/questions/:id', (req, res) => {
       }
       else { // question found
         console.log("Question found");
-        var new_view_count = result.view_count;
+        var new_view_count = r1.view_count;
         console.log("View count: " + new_view_count);
 
         // Update view Count - if the user is NEW
