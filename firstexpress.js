@@ -525,78 +525,72 @@ app.post('/questions/add', (req, res) => {
 })
 
 app.get('/questions/:id', (req, res) => {
-  var id = req.params.id;
-  console.log("ID: " + id);
+  const get_questions_func = async function(req) {
+    try {
+      // get id
+      var id = req.params.id;
+      console.log("ID: " + id);
 
-  sodb.collection("questions").findOne({"id": id}, function(err, result) {
-    if (err) {
-      console.log("Error");
-      res.send(403, {"status": "error", "error": "Error"});
-    }
-    else if (result == null) {
-      console.log("Question not found");
-      res.send(403, {"status": "error", "error": "Question not found"});
-    }
-    else {
-      console.log("Question found");
-      var new_view_count = result.view_count;
-
-      // Update view Count - if the user is NEW
-      // First determine if user is new
-      var username;
-      const verify_user = async function(req) {
-        try {
-          var decoded = jwt.verify(req.cookies.access_token, 'so-clone');
-          username = decoded.username;
-        }
-        catch (e) {
-          username = ip.address();
-        }
+      // find question with that id
+      var questions_collection = sodb.collection("questions");
+      var r1 = await questions_collection.findOne({"id": id});
+      if (r1 == null) { // no question with that id
+        console.log("Question not found");
+        res.send(403, {"status": "error", "error": "Question not found"});
+        return;
       }
+      else { // question found
+        console.log("Question found");
+        var new_view_count = result.view_count;
+        // Update view Count - if the user is NEW
 
-      verify_user(req);
+        // First determine if user is new - get username
+        var username;
+        const verify_user = async function(req) {
+          try {
+            var decoded = jwt.verify(req.cookies.access_token, 'so-clone');
+            username = decoded.username;
+          }
+          catch (e) {
+            username = ip.address();
+          }
+        }
+        verify_user(req);
 
-      sodb.collection("views").findOne({"id": id}).then(function(res4) {
-        var views = res4.views;
+        var views_collection = sodb.collection("views");
+        var r2 = await views_collection.findOne({"id": id});
+        var views = r2.views;
+        var new_view_count = 1 + views.length;
+
+        // if this condition triggers, user is new - increment view count
         if (views.indexOf(username) < 0) {
+          // get old view count
           console.log("Old view count: " + views.length);
-          views.push(username);
-          new_view_count = views.length;
+          views.push(username); // insert new username into views array
+          new_view_count = 1 + views.length;
           console.log("New view count " + new_view_count);
 
+          // Store new views dictionary
           var new_views_dict = {$set: {views: views}};
-
-          sodb.collection("views").updateOne({"id": id}, new_views_dict, function(e5, r5) {
-            if (e5) throw e5;
-            else console.log("New user, view count incremented");
-          })
-        }
-      }).then(function() {
-      var new_view_count_dict = {$set: {view_count: new_view_count}};
-      sodb.collection("questions").updateOne({"id": id}, new_view_count_dict, function(err2, res2) {
-        if (err2) throw err2;
-        else {
-          console.log("Question DB updated successfully");
-          console.log(result);
-          sodb.collection("questions").findOne({"id": id}, function(err3, res3) {
-            if (err3) throw err3;
-            else {
-              console.log("Post update result");
-              console.log(res3);
-              res.json({"status": "OK", "question": res3});
-            }
-          })
+          var r3 = await views_collection.updateOne({"id": id});
+          console.log("New user, view count incremented");
+          var new_view_count_dict = {$set: {view_count: new_view_count}};
+          var r4 = questions_collection.updateOne({"id": id}, new_view_count_dict);
 
         }
-      })}).catch(function(e5) {
-        res.send(403, {"status": "error", "error": "Error e5"});
-      }).catch(function(err2) {
-        res.send(403, {"status": "error", "error": "Error err2"});
-      }).catch(function(err3) {
-        res.send(403, {"status": "error", "error": "Error err3"});
-      })
+
+        // Ensure question data is properly updated
+        var r5 = questions_collection.findOne({"id": id});
+        console.log(r5);
+        res.json({"status": "OK", "question": r5});
+      }
     }
-  })
+    catch (e) {
+      res.send(403, {"status": "error", "error": "Error"});
+    }
+  }
+
+  get_questions_func(req);
 })
 
 app.post('/questions/:id/answers/add', (req, res) => {
