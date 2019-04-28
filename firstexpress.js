@@ -595,7 +595,7 @@ app.get('/questions/:id', (req, res) => {
     catch (err) {
       if (err.name == "JsonWebTokenError") {
         console.log(err);
-        var username = decoded.username;
+        var username = ip.address();
         console.log("Username " + username);
 
         // get id
