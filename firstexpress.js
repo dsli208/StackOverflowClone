@@ -782,6 +782,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
 app.get('/questions/:id/answers', (req, res) => {
     const get_answers_func = async function(req) {
       try {
+        console.log("Trying to get answer");
         var id = req.params.id;
         console.log(id);
 
