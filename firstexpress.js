@@ -665,64 +665,110 @@ app.get('/questions/:id', (req, res) => {
 })
 
 app.post('/questions/:id/answers/add', (req, res) => {
-  console.log("Session for add answer");
-  var id = req.params.id;
-  console.log(req.session);
-  var uname = null;
+  const get_questions_func = async function(req) {
+    try {
+      console.log("Session for add answer");
+      var id = req.params.id;
+      console.log(req.session);
+      var uname = null;
 
-  // First, check that a user is logged in
-  var decoded = jwt.verify(req.cookies.access_token, 'so_clone');
-  if (decoded == null) res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
-  else if (decoded.username == null) {
-    console.log("No user logged in at POST 1 ");
-    res.send(403, {"status": "error", "error": "No user logged in"});
-  }
-  else if (req.body.body == null) {
-    console.log("NO BODY");
-    res.send(403, {"status": "error", "error": "The answer needs a body"});
-  }
-  else {
-    uname = decoded.username;
-    console.log(uname);
-    sodb.collection("answers").findOne({"id": id}, function(err, result) {
-      if (err) {
-        console.log("Error");
-        res.send(403, {"status": "error", "error": "Error"});
+      // First, check that a user is logged in
+      var decoded = jwt.verify(req.cookies.access_token, 'so_clone');
+      if (decoded == null) res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
+      else if (decoded.username == null) {
+        console.log("No user logged in at POST 1 ");
+        res.send(403, {"status": "error", "error": "No user logged in"});
       }
-      else if (result == null) {
-        console.log("Nonexistent question");
-        res.send(403, {"status": "error", "error": "A question with this ID does not exist."});
+      else if (req.body.body == null) {
+        console.log("NO BODY");
+        res.send(403, {"status": "error", "error": "The answer needs a body"});
       }
       else {
-        var answerid = randomstring.generate();
-        var a_media = null;
-        if (req.body.media != null) {
-          a_media = req.body.media;
+        uname = decoded.username;
+        console.log(uname);
+        var answers_collection = sodb.collection("answers");
+        var r1 = answers_collection.findOne({"id": id});
+        if (r1 == null) {
+          console.log("Nonexistent question");
+          res.send(403, {"status": "error", "error": "A question with this ID does not exist."});
         }
-        var answerobj = {"id": answerid, "user": uname, "body": req.body.body, "score": 0, "is_accepted": false, "timestamp": Date.now() / 1000, "media": null, "upvotes": [], "downvotes": []};
+        else {
+          var answerid = randomstring.generate();
+          var a_media = null;
+          if (req.body.media != null) {
+            console.log("has media");
+            // If there is media, check each item of the media array to ensure that it exists in the Cassandra database, AND that it hasn't been used yet
+            for (var i = 0; i < req.body.media.length && not_error; i++) {
+              var media_id = req.body.media[i];
+              console.log("i = " + i + " and media id is " + media_id);
 
-        var answers_arr = result.answers;
-        answers_arr.push(answerobj);
-        var new_answer_arr = {$set: {answers: answers_arr}};
+              var media_collection = sodb.collection("media");
+              var r2 = await media_collection.findOne({"mid": media_id});
 
-        // Update DB Entry
-        sodb.collection("answers").updateOne({"id": id}, new_answer_arr, function(err2, res2) {
-          if (err2) throw err2;
-          else {
-            console.log("DB updated successfully");
-            res.json({"status": "OK", "id": answerid});
+              if (r2 == null) {
+                console.log("Null r2");
+                retdict = {"status": "error", "error": "Media file does not exist for this ID - error"}; // file doesn't exist
+              }
+              else if (r2.username != username) {
+                console.log(r2);
+                console.log("Bad username.  Media id " + media_id + " poster " + r2.username + " username " + username + " time " + Date.now());
+                retdict = {"status": "error", "error": "Only the original asker can use their media"};
+                //res.send(403, ); // Ensure file can only be used by original asker
+              }
+              else if (r2.used) {
+                console.log(r2);
+                console.log("Already used.  Media id " + media_id + " posted by " + r2.username + " username " + username + " time " + Date.now());
+                retdict = {"status": "error", "error": "Media file " + media_id + " is already being used in another question/answer"};
+                //res.send(403, ); // file is already used
+              }
+              else {
+                //var new_used_dict = {$set: {used: true}}; // file isn't used and can be used for this question, mark it used
+                sodb.collection("media").updateOne({"mid": media_id}, {$set: {used: true}}, function(e4, r4) {
+                  if (e4) throw e4;
+                  else if (retdict['status'] == "OK") {
+                    console.log("Media with id " + media_id + " exists and is being marked true at time " + Date.now() + " by user " + username);
+                    //console.log(r2);
+                    console.log("Media exists");
+                    //console.log(r3);
+                  }
+                })
+              }
+
+              console.log("End of for loop iteration");
+            }
+            // If the for loop completes, set the add_media var to our valid array of media ID's
+            add_media = req.body.media;
+            console.log(add_media);
           }
-        })
+          var answerobj = {"id": answerid, "user": uname, "body": req.body.body, "score": 0, "is_accepted": false, "timestamp": Date.now() / 1000, "media": null, "upvotes": [], "downvotes": []};
 
-        // Insert into answer list -- works?
-        sodb.collection("answer_list").insertOne({"id": answerid, "media": null, "upvotes": [], "downvotes": []}, function(err3, res3) {
-          if (err3) throw err3;
-          else {
-            console.log("Answer added to list");
-          }
-        })
+          var answers_arr = result.answers;
+          answers_arr.push(answerobj);
+          var new_answer_arr = {$set: {answers: answers_arr}};
+
+          // Update DB Entry
+          sodb.collection("answers").updateOne({"id": id}, new_answer_arr, function(err2, res2) {
+            if (err2) throw err2;
+            else {
+              console.log("DB updated successfully");
+              res.json({"status": "OK", "id": answerid});
+            }
+          })
+
+          // Insert into answer list -- works?
+          sodb.collection("answer_list").insertOne({"id": answerid, "media": null, "upvotes": [], "downvotes": []}, function(err3, res3) {
+            if (err3) throw err3;
+            else {
+              console.log("Answer added to list");
+            }
+          })
+        }
       }
-    })
+    }
+    catch (err) {
+      console.log("Error");
+      res.send(403, {"status": "error", "error": "Error"});
+    }
   }
 })
 
