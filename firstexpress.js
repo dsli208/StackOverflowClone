@@ -795,14 +795,13 @@ app.get('/questions/:id/answers', (req, res) => {
           console.log(result.answers);
           res.json({"status": "OK", "answers": result.answers});
         }
-    }
+      }
       catch (e) {
         console.log("Error");
         res.send(403, {"status": "error", "error": "Error - get answer"});
       }
     }
     get_answers_func(req);
-  }
 })
 
 const search_by_options = {
