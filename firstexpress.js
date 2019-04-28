@@ -1559,7 +1559,7 @@ app.get("/media/:id", (req, res) => {
 })
 
 // Reset functions
-app.get("/reset", (req, res) {
+app.get("/reset", (req, res) => {
   sodb.dropDatabase(function(err, db) {
     if (err) throw err;
     else {
@@ -1618,8 +1618,5 @@ app.get("/reset", (req, res) {
   })
 })
 
-app.post("/reset", (req, res) {
-
-})
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
