@@ -547,20 +547,19 @@ app.get('/questions/:id', (req, res) => {
         // Update view Count - if the user is NEW
 
         // First determine if user is new - get username
-        var username;
-        const verify_user = async function(req, username) {
+        const verify_user = async function(req) {
           try {
             var decoded = await jwt.verify(req.cookies.access_token, 'so-clone');
             console.log("JSON Token Verified");
             console.log(decoded);
-            username = decoded.username;
+            return decoded.username;
           }
           catch (e) {
             console.log("JSON Token Error");
-            username = ip.address();
+            return ip.address();
           }
         }
-        verify_user(req);
+        var username = verify_user(req);
 
         if (username == undefined || username == null) {
           console.log("Username still undefined");
