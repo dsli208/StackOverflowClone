@@ -759,7 +759,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
           if (r5 == null) {
             res.send(403, {"status": "error", "error": "Error when updating answers database"});
           }
-          else if (redict['status'] == "error") {
+          else if (retdict['status'] == "error") {
             res.send(403, retdict);
           }
           else {
