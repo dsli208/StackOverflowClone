@@ -549,7 +549,7 @@ app.get('/questions/:id', (req, res) => {
         // First determine if user is new - get username
         const verify_user = async function(req) {
           try {
-            var decoded = await jwt.verify(req.cookies.access_token, 'so-clone');
+            var decoded = jwt.verify(req.cookies.access_token, 'so-clone');
             console.log("JSON Token Verified");
             console.log(decoded);
             return decoded.username;
