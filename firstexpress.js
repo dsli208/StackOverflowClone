@@ -1623,7 +1623,7 @@ app.get("/reset", (req, res) => {
       sodb.collection("questions").createIndex({"title": "text", "body": "text"}, function(err, res) {
         if (err) throw err;
         console.log("Created questions index for use during searching.");
-      }
+      })
     }
   })
   res.send("DB reset");
