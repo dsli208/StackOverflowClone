@@ -547,19 +547,21 @@ app.get('/questions/:id', (req, res) => {
         // Update view Count - if the user is NEW
 
         // First determine if user is new - get username
-        const verify_user = async function(req) {
+        var decoded = jwt.verify(req.cookies.access_token, 'so-clone');
+        var username = decoded.username;
+        /*const verify_user = async function(req) {
           try {
             var decoded = jwt.verify(req.cookies.access_token, 'so-clone');
             console.log("JSON Token Verified");
             console.log(decoded);
-            return decoded.username;
+            return
           }
           catch (e) {
             console.log("JSON Token Error");
             return ip.address();
           }
         }
-        var username = verify_user(req);
+        var username = verify_user(req);*/
 
         if (username == undefined || username == null) {
           console.log("Username still undefined");
@@ -599,7 +601,40 @@ app.get('/questions/:id', (req, res) => {
     }
     catch (err) {
       console.log(err);
-      res.send(403, {"status": "error", "error": "Error"});
+      if (err instanceof JsonWebTokenError) {
+        var username = ip.address();
+
+        var views_collection = sodb.collection("views");
+        var r2 = await views_collection.findOne({"id": id});
+        var views = r2.views;
+        console.log(views);
+        var new_view_count = views.length;
+
+        // if this condition triggers, user is new - increment view count
+        if (views.indexOf(username) < 0) {
+          // get old view count
+          console.log("Old view count: " + views.length);
+          views.push(username); // insert new username into views array
+          new_view_count = views.length;
+          console.log("New view count " + new_view_count);
+
+          // Store new views dictionary
+          var new_views_dict = {$set: {views: views}};
+          var r3 = await views_collection.updateOne({"id": id}, new_views_dict);
+          console.log("New user, view count incremented");
+          var new_view_count_dict = {$set: {view_count: new_view_count}};
+          var r4 = await questions_collection.updateOne({"id": id}, new_view_count_dict);
+
+        }
+
+        // Ensure question data is properly updated
+        var r5 = await questions_collection.findOne({"id": id});
+        console.log(r5);
+        res.json({"status": "OK", "question": r5});
+      }
+      else {
+        res.send(403, {"status": "error", "error": "Error"});
+      }
     }
   }
 
