@@ -876,7 +876,7 @@ app.post('/search', (req, res) => {
     if (search_q != null) {
       console.log("Modifying query");
       query_and_arr.push({"$text": {"$search": search_q}});
-      // remember to CREATE SEARCH INDEX in the questions db for this createIndex({"title": "text", "body": "text"})
+      // remember to CREATE SEARCH INDEX in the questions db for this: db.questions.createIndex({"title": "text", "body": "text"})
       //query = {$and:[{"timestamp": {$lte: timestamp}}, {"$text": {"$search": search_q}}]}; // Add a search query here
       query = {$and: query_and_arr};
     }
@@ -991,6 +991,7 @@ app.get('/user/:username', (req, res) => {
       res.json({"status": "error", "error": "error in get user"});
     }
   }
+  get_user_func(req);
 })
 
 app.get('/user/:username/questions', (req, res) => {
