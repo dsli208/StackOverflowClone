@@ -747,21 +747,22 @@ app.post('/questions/:id/answers/add', (req, res) => {
           var new_answer_arr = {$set: {answers: answers_arr}};
 
           // Update DB Entry
-          sodb.collection("answers").updateOne({"id": id}, new_answer_arr, function(err2, res2) {
-            if (err2) throw err2;
-            else {
-              console.log("DB updated successfully");
-              res.json({"status": "OK", "id": answerid});
-            }
-          })
+          var r5 = await answers_collection.updateOne({"id": id}, new_answer_arr);
+          if (r5 == null) {
+            res.send(403, {"status": "error", "error": "Error when updating answers database"});
+          }
+          else {
+            res.json({"status": "OK", "id": answerid});
+          }
 
-          // Insert into answer list -- works?
+
+          /*// Insert into answer list -- works?
           sodb.collection("answer_list").insertOne({"id": answerid, "media": null, "upvotes": [], "downvotes": []}, function(err3, res3) {
             if (err3) throw err3;
             else {
               console.log("Answer added to list");
             }
-          })
+          })*/
         }
       }
     }
