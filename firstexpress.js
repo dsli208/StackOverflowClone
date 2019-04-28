@@ -711,7 +711,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
                 console.log("Null r2");
                 retdict = {"status": "error", "error": "Media file does not exist for this ID - error"}; // file doesn't exist
               }
-              else if (r2.username != username) {
+              else if (r2.username != uname) {
                 console.log(r2);
                 console.log("Bad username.  Media id " + media_id + " poster " + r2.username + " username " + username + " time " + Date.now());
                 retdict = {"status": "error", "error": "Only the original asker can use their media"};
