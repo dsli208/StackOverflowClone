@@ -965,8 +965,8 @@ app.get('/user/:username', (req, res) => {
       if (decoded == null) res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
       else if (decoded.username == null) {
         res.send(403, {"status": "error", "error": "No username given"});
-      }
-      var username = decoded.username;*/
+      }*/
+      var username = req.params.username;
       var verified_users_collection = sodb.collection("verified_users");
       var result = await verified_users_collection.findOnefindOne({username: username});
       if (result == null) {
