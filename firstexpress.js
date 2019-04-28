@@ -601,7 +601,7 @@ app.get('/questions/:id', (req, res) => {
     }
     catch (err) {
       console.log(err);
-      if (err instanceof JsonWebTokenError) {
+      if (err.name == 'JsonWebTokenError') {
         var username = ip.address();
 
         var views_collection = sodb.collection("views");
