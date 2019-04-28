@@ -360,7 +360,7 @@ app.post('/login', (req, res) => {
 
 app.post('/logout', (req, res) => {
   console.log("Logout called");
-  req.session.username = null;
+  //req.session.username = null;
   res.clearCookie("access_token"); // With cookies, how to change to their equivalent?
   user = null;
 
