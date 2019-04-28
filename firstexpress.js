@@ -771,7 +771,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
     catch (err) {
       throw err;
       //console.log("Error: " + err);
-      res.send(403, {"status": "error", "error": "Error - add answer"});
+      res.send(403, {"status": "error", "error": "Error - add answer" + err});
     }
   }
   get_answers_func(req);
