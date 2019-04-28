@@ -667,7 +667,7 @@ app.get('/questions/:id', (req, res) => {
 app.post('/questions/:id/answers/add', (req, res) => {
   const get_answers_func = async function(req) {
     try {
-      console.log("Session for add answer");
+      // console.log("Session for add answer");
       var id = req.params.id;
       //console.log(req.session);
       var uname = null;
@@ -702,7 +702,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
             // If there is media, check each item of the media array to ensure that it exists in the Cassandra database, AND that it hasn't been used yet
             for (var i = 0; i < req.body.media.length && not_error; i++) {
               var media_id = req.body.media[i];
-              console.log("i = " + i + " and media id is " + media_id);
+              // console.log("i = " + i + " and media id is " + media_id);
 
               var media_collection = sodb.collection("media");
               var r2 = await media_collection.findOne({"mid": media_id});
@@ -752,7 +752,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
 
           var answers_arr = r1.answers;
           answers_arr.push(answerobj);
-          console.log(answers_arr);
+          // console.log(answers_arr);
           var new_answer_arr = {$set: {answers: answers_arr}};
 
           // Update DB Entry
