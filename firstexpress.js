@@ -1626,7 +1626,23 @@ app.get("/reset", (req, res) => {
       })
     }
   })
-  res.send("DB reset");
+  res.send("MongoDB reset");
+})
+
+app.post("/reset", (req, res) => { // Reset cassandra
+  const query = 'TRUNCATE media;';
+  const params = [];
+  cassandra_client.execute(query, params, { prepare: true }, function (err2) {
+    console.log("Clearing Cassandra Media table");
+    console.log(err2); // if no error, undefined
+    console.log("Cleared");
+    if (err2) {
+      res.send(403, {"status": "error", "error": "Error clearing cassandra table"});
+    }
+    else {
+      res.send("Cassandra DB media table truncated");
+    }
+  });
 })
 
 
