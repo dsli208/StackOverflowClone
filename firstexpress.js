@@ -591,8 +591,8 @@ app.get('/questions/:id', (req, res) => {
         }
 
         // Ensure question data is properly updated
-        var r5 = await questions_collection.findOne({"id": id});
-        console.log(r5);
+        //var r5 = await questions_collection.findOne({"id": id});
+        //console.log(r5);
         res.json({"status": "OK", "question": r5});
       }
     }
@@ -669,7 +669,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
     try {
       console.log("Session for add answer");
       var id = req.params.id;
-      console.log(req.session);
+      //console.log(req.session);
       var uname = null;
 
       // First, check that a user is logged in
