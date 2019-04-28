@@ -576,7 +576,7 @@ app.get('/questions/:id', (req, res) => {
 
           // Store new views dictionary
           var new_views_dict = {$set: {views: views}};
-          var r3 = await views_collection.updateOne({"id": id});
+          var r3 = await views_collection.updateOne({"id": id}, new_views_dict);
           console.log("New user, view count incremented");
           var new_view_count_dict = {$set: {view_count: new_view_count}};
           var r4 = questions_collection.updateOne({"id": id}, new_view_count_dict);
@@ -590,6 +590,7 @@ app.get('/questions/:id', (req, res) => {
       }
     }
     catch (err) {
+      console.log(err);
       res.send(403, {"status": "error", "error": "Error"});
     }
   }
