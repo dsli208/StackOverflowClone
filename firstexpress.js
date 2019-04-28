@@ -529,13 +529,13 @@ app.get('/questions/:id', (req, res) => {
     try {
       // First determine if user is new - get username
       var username;
-      var decoded = await jwt.verify(req.cookies.access_token, 'so-clone');
+      var decoded = await jwt.decode(req.cookies.access_token);
       console.log(decoded);
       if (decoded == null) {
-        username = decoded.username;
+        username = ip.address();
       }
       else {
-        username = ip.address();
+        username = decoded.payload.username;
       }
 
       console.log("Username " + username);
