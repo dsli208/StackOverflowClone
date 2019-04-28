@@ -967,25 +967,22 @@ app.get('/user/:username', (req, res) => {
         res.send(403, {"status": "error", "error": "No username given"});
       }
       var username = decoded.username;*/
+      var verified_users_collection = sodb.collection("verified_users");
+      var result = await verified_users_collection.findOnefindOne({username: username});
+      if (result == null) {
+        res.send(403, {"status": "error", "error": "User does not exist"});
+      }
+      else {
+        console.log("user found");
 
-      sodb.collection("verified_users").findOne({username: username}, function(err, result) {
-        if (err) {
-          res.send(403, {"status": "error", "error": "total error"});
-        }
-        else if (result == null) {
-          res.send(403, {"status": "error", "error": "User does not exist"});
-        }
-        else {
-          console.log("user found");
+        // Obtain the user details
+        var email = result.email;
+        var rep = result.reputation;
 
-          // Obtain the user details
-          var email = result.email;
-          var rep = result.reputation;
+        // Return the user details
+        res.json({"status": "OK", "user": {"email": email, "reputation": rep}});
+      }
 
-          // Return the user details
-          res.json({"status": "OK", "user": {"email": email, "reputation": rep}});
-        }
-      })
     }
     catch (e) {
       res.json({"status": "error", "error": "error in get user"});
