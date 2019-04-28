@@ -111,6 +111,11 @@ MongoClient.connect(url, function(err, db) {
     if (err) throw err;
     console.log("Created media use records");
   })
+
+  sodb.collection("questions").createIndex({"title": "text", "body": "text"}, function(err, res) {
+    if (err) throw err;
+    console.log("Created questions index for use during searching.");
+  }
 });
 
 const cassandra_client = new cassandra.Client({
@@ -655,7 +660,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
       var uname = null;
 
       // First, check that a user is logged in
-      var decoded = jwt.verify(req.cookies.access_token, 'so_clone');
+      var decoded = await jwt.verify(req.cookies.access_token, 'so_clone');
       if (decoded == null) res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
       else if (decoded.username == null) {
         console.log("No user logged in at POST 1 ");
@@ -680,7 +685,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
           var not_error = true;
           var retdict = {"status": "OK"};
           if (req.body.media != null) {
-            console.log("has media");
+            //console.log("has media");
             // If there is media, check each item of the media array to ensure that it exists in the Cassandra database, AND that it hasn't been used yet
             for (var i = 0; i < req.body.media.length && not_error; i++) {
               var media_id = req.body.media[i];
@@ -724,11 +729,11 @@ app.post('/questions/:id/answers/add', (req, res) => {
                 not_error = false;
               }
 
-              console.log("End of for loop iteration");
+              //console.log("End of for loop iteration");
             }
             // If the for loop completes, set the add_media var to our valid array of media ID's
             a_media = req.body.media;
-            console.log(a_media);
+            //console.log(a_media);
           }
           var answerobj = {"id": answerid, "user": uname, "body": req.body.body, "score": 0, "is_accepted": false, "timestamp": Date.now() / 1000, "media": a_media, "upvotes": [], "downvotes": []};
 
@@ -1614,6 +1619,11 @@ app.get("/reset", (req, res) => {
         if (err) throw err;
         console.log("Created media use records");
       })
+
+      sodb.collection("questions").createIndex({"title": "text", "body": "text"}, function(err, res) {
+        if (err) throw err;
+        console.log("Created questions index for use during searching.");
+      }
     }
   })
   res.send("DB reset");
