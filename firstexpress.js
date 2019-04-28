@@ -687,7 +687,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
         uname = decoded.username;
         console.log(uname);
         var answers_collection = sodb.collection("answers");
-        var r1 = answers_collection.findOne({"id": id});
+        var r1 = await answers_collection.findOne({"id": id});
         if (r1 == null) {
           console.log("Nonexistent question");
           res.send(403, {"status": "error", "error": "A question with this ID does not exist."});
@@ -713,13 +713,13 @@ app.post('/questions/:id/answers/add', (req, res) => {
               }
               else if (r2.username != uname) {
                 console.log(r2);
-                console.log("Bad username.  Media id " + media_id + " poster " + r2.username + " username " + username + " time " + Date.now());
+                console.log("Bad username.  Media id " + media_id + " poster " + r2.username + " username " + uname + " time " + Date.now());
                 retdict = {"status": "error", "error": "Only the original asker can use their media"};
                 //res.send(403, ); // Ensure file can only be used by original asker
               }
               else if (r2.used) {
                 console.log(r2);
-                console.log("Already used.  Media id " + media_id + " posted by " + r2.username + " username " + username + " time " + Date.now());
+                console.log("Already used.  Media id " + media_id + " posted by " + r2.username + " username " + uname + " time " + Date.now());
                 retdict = {"status": "error", "error": "Media file " + media_id + " is already being used in another question/answer"};
                 //res.send(403, ); // file is already used
               }
@@ -728,7 +728,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
                 sodb.collection("media").updateOne({"mid": media_id}, {$set: {used: true}}, function(e4, r4) {
                   if (e4) throw e4;
                   else if (retdict['status'] == "OK") {
-                    console.log("Media with id " + media_id + " exists and is being marked true at time " + Date.now() + " by user " + username);
+                    console.log("Media with id " + media_id + " exists and is being marked true at time " + Date.now() + " by user " + uname);
                     //console.log(r2);
                     console.log("Media exists");
                     //console.log(r3);
@@ -745,12 +745,12 @@ app.post('/questions/:id/answers/add', (req, res) => {
               console.log("End of for loop iteration");
             }
             // If the for loop completes, set the add_media var to our valid array of media ID's
-            add_media = req.body.media;
-            console.log(add_media);
+            a_media = req.body.media;
+            console.log(a_media);
           }
-          var answerobj = {"id": answerid, "user": uname, "body": req.body.body, "score": 0, "is_accepted": false, "timestamp": Date.now() / 1000, "media": null, "upvotes": [], "downvotes": []};
+          var answerobj = {"id": answerid, "user": uname, "body": req.body.body, "score": 0, "is_accepted": false, "timestamp": Date.now() / 1000, "media": a_media, "upvotes": [], "downvotes": []};
 
-          var answers_arr = result.answers;
+          var answers_arr = r1.answers;
           answers_arr.push(answerobj);
           var new_answer_arr = {$set: {answers: answers_arr}};
 
