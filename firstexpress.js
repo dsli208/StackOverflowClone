@@ -876,6 +876,7 @@ app.post('/search', (req, res) => {
     if (search_q != null) {
       console.log("Modifying query");
       query_and_arr.push({"$text": {"$search": search_q}});
+      // remember to CREATE SEARCH INDEX in the questions db for this createIndex({"title": "text", "body": "text"})
       //query = {$and:[{"timestamp": {$lte: timestamp}}, {"$text": {"$search": search_q}}]}; // Add a search query here
       query = {$and: query_and_arr};
     }
@@ -958,31 +959,38 @@ app.delete('/questions/:id', (req, res) => {
 })
 
 app.get('/user/:username', (req, res) => {
-  var decoded = jwt.verify(req.cookies.access_token, 'so_clone');
-  if (decoded == null) res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
-  else if (decoded.username == null) {
-    res.send(403, {"status": "error", "error": "No username given"});
+  const get_user_func = async function(req) {
+    try {
+      var decoded = jwt.verify(req.cookies.access_token, 'so_clone');
+      if (decoded == null) res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
+      else if (decoded.username == null) {
+        res.send(403, {"status": "error", "error": "No username given"});
+      }
+      var username = decoded.username;
+
+      sodb.collection("verified_users").findOne({username: username}, function(err, result) {
+        if (err) {
+          res.send(403, {"status": "error", "error": "total error"});
+        }
+        else if (result == null) {
+          res.send(403, {"status": "error", "error": "User does not exist"});
+        }
+        else {
+          console.log("user found");
+
+          // Obtain the user details
+          var email = result.email;
+          var rep = result.reputation;
+
+          // Return the user details
+          res.json({"status": "OK", "user": {"email": email, "reputation": rep}});
+        }
+      })
+    }
+    catch (e) {
+      res.json({"status": "error", "error": "error in get user"});
+    }
   }
-  var username = decoded.username;
-
-  sodb.collection("verified_users").findOne({username: username}, function(err, result) {
-    if (err) {
-      res.send(403, {"status": "error", "error": "total error"});
-    }
-    else if (result == null) {
-      res.send(403, {"status": "error", "error": "User does not exist"});
-    }
-    else {
-      console.log("user found");
-
-      // Obtain the user details
-      var email = result.email;
-      var rep = result.reputation;
-
-      // Return the user details
-      res.json({"status": "OK", "user": {"email": email, "reputation": rep}});
-    }
-  })
 })
 
 app.get('/user/:username/questions', (req, res) => {
