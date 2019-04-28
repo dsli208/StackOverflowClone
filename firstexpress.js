@@ -593,7 +593,7 @@ app.get('/questions/:id', (req, res) => {
       }
     }
     catch (err) {
-      if (if err.name == "JsonWebTokenError") {
+      if (err.name == "JsonWebTokenError") {
         console.log(err);
         var username = decoded.username;
         console.log("Username " + username);
