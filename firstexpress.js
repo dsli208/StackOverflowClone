@@ -115,7 +115,7 @@ MongoClient.connect(url, function(err, db) {
   sodb.collection("questions").createIndex({"title": "text", "body": "text"}, function(err, res) {
     if (err) throw err;
     console.log("Created questions index for use during searching.");
-  }
+  })
 });
 
 const cassandra_client = new cassandra.Client({
