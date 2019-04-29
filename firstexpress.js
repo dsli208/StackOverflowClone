@@ -1204,7 +1204,7 @@ app.post("/questions/:id/upvote", (req, res) => {
             }
             else console.log("Votes updated - DOWNVOTE");
 
-            var r10 = await questions_collection.updateOne({"id": id}, {$set: {"reputation": new_score}});
+            var r10 = await questions_collection.updateOne({"id": id}, {$set: {"score": new_score}});
             if (r10 == null) {
               res.send(403, {"status": "error", "error": "error r10"});
               return;
@@ -1243,7 +1243,7 @@ app.post("/questions/:id/upvote", (req, res) => {
           }
           else console.log("Votes updated - DOWNVOTE");
 
-          var r14 = await questions_collection.updateOne({"id": id}, {$set: {"reputation": new_score}});
+          var r14 = await questions_collection.updateOne({"id": id}, {$set: {"score": new_score}});
           if (r14 == null) {
             res.send(403, {"status": "error", "error": "error r14"});
             return;
