@@ -1442,7 +1442,7 @@ app.post("/answers/:id/upvote", (req, res) => {
           if (answerUpdateIndex >= 0) {
             r1.answers[answerUpdateIndex] = answer;
 
-            var r7 = await answers_collection.updateOne({"answers.id": id}, {$set: {"answers" : result.answers}});
+            var r7 = await answers_collection.updateOne({"answers.id": id}, {$set: {"answers" : r1.answers}});
             if (r7 == null) {
               res.send(403, {"status": "error", "error": "error r7"});
               return;
@@ -1484,7 +1484,7 @@ app.post("/answers/:id/upvote", (req, res) => {
         if (answerUpdateIndex >= 0) {
           r1.answers[answerUpdateIndex] = answer;
 
-          var r10 = await answers_collection.updateOne({"answers.id": id}, {$set: {"answers" : result.answers}});
+          var r10 = await answers_collection.updateOne({"answers.id": id}, {$set: {"answers" : r1.answers}});
           if (r10 == null) {
             res.send(403, {"status": "error", "error": "error r10"});
             return;
