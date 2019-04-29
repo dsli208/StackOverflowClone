@@ -1602,7 +1602,7 @@ app.get("/dbreset", (req, res) => {
       console.log("DB reset");
       //mongodb = db;
       console.log(db);
-      sodb = db.db("stackoverflowclone");
+      sodb = db("stackoverflowclone");
       console.log("Database created!");
 
       // Set up GridFS for large media/file storage
