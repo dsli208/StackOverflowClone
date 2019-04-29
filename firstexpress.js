@@ -1617,22 +1617,22 @@ app.get("/dbreset", (req, res) => {
 
       sodb.collection("answers").drop(function(err, delOK) {
         if (err) throw err;
-        if (delOK) console.log("Questions collection deleted");
+        if (delOK) console.log("Answers collection deleted");
       });
 
       sodb.collection("views").drop(function(err, delOK) {
         if (err) throw err;
-        if (delOK) console.log("Questions collection deleted");
+        if (delOK) console.log("Views collection deleted");
       });
 
       sodb.collection("media").drop(function(err, delOK) {
         if (err) throw err;
-        if (delOK) console.log("Questions collection deleted");
+        if (delOK) console.log("Media collection deleted");
       });
 
       sodb.collection("answer_list").drop(function(err, delOK) {
         if (err) throw err;
-        if (delOK) console.log("Questions collection deleted");
+        if (delOK) console.log("Answerlist collection deleted");
       });
       }
 
@@ -1681,12 +1681,15 @@ app.get("/dbreset", (req, res) => {
         console.log("Created media use records");
       })
 
-      sodb.collection("questions").createIndex({"title": "text", "body": "text"}, function(err, res) {
-        if (err) throw err;
-        console.log("Created questions index for use during searching.");
-      })
       }
-  drop_collections(); recreate_collections();
+
+      var recreate_index = async function() {
+        sodb.collection("questions").createIndex({"title": "text", "body": "text"}, function(err, res) {
+          if (err) throw err;
+          console.log("Created questions index for use during searching.");
+        })
+      }
+  drop_collections(); recreate_collections(); recreate_index();
   res.send("MongoDB reset");
 })
 
