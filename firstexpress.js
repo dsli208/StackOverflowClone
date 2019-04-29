@@ -1303,191 +1303,225 @@ app.post("/questions/:id/upvote", (req, res) => {
 })
 
 app.post("/answers/:id/upvote", (req, res) => {
-  var id = req.params.id;
+  var a_upvote = async function(req, res) {
+    try {
+      var id = req.params.id;
 
-  // Check that user is logged in
-  var decoded = jwt.verify(req.cookies.access_token, 'so_clone');
-  if (decoded == null) {
-    res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
-    return;
-  }
-  var username = decoded.username;
+      // Check that user is logged in
+      var decoded = jwt.verify(req.cookies.access_token, 'so_clone');
+      if (decoded == null) {
+        res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
+        return;
+      }
+      var username = decoded.username;
 
-  if (username == null) {
-    console.log("No user logged in");
-    res.send(403, {"status": "error", "error": "No user logged in"});
-    return;
-  }
+      if (username == null) {
+        console.log("No user logged in");
+        res.send(403, {"status": "error", "error": "No user logged in"});
+        return;
+      }
 
-  // Set default for upvote and change it if the body param is provided
-  var vote = true;
-  if (req.body.vote != null) {
-    vote = req.body.vote;
-  }
+      // Set default for upvote and change it if the body param is provided
+      var vote = true;
+      if (req.body.vote != null) {
+        vote = req.body.vote;
+      }
 
-  sodb.collection("answers").findOne({"answers.id": id}, {"answers": {$elemMatch: {"id": id}}}, function(err, result) {
-    if (err) throw err;
-    console.log(result);
-    console.log("End of answers result");
+      var answers_collection = sodb.collection("answers");
+      var verified_users_collection = sodb.collection("verified_users");
 
-    var answer = result.answers.find(x => x.id === id); // if not compatible, maybe use lodash here?
-    console.log(answer);
+      var r1 = await answers.collection.findOne({"answers.id": id}, {"answers": {$elemMatch: {"id": id}}});
+      if (r1 == null) {
+        res.send(403, {"status": "error", "error": "error r1"});
+        return;
+      }
 
-    // given our answer, now upvote/downvote it, and change score accordingly
-    var score = answer.score;
-    var upvotes = answer.upvotes;
-    var downvotes = answer.downvotes;
-    // How to update the answer dictionary, then update the array, then update the answers entry with the new array?
+      console.log(r1);
+      console.log("End of answers result");
 
-    var a_username = answer.user;
+      var answer = r1.answers.find(x => x.id === id); // if not compatible, maybe use lodash here?
+      console.log(answer);
 
-    if (vote == true) { // upvote answer or undo upvote
-      // First, make sure the person isn't upvoting twice
-      if (upvotes.indexOf(username) >= 0) {
-        console.log("User has already upvoted answer.  Undoing upvote for ANSWER.");
-        upvotes.splice(upvotes.indexOf(username), 1);
-        var new_ans_score = upvotes.length - downvotes.length;
+      // given our answer, now upvote/downvote it, and change score accordingly
+      var score = answer.score;
+      var upvotes = answer.upvotes;
+      var downvotes = answer.downvotes;
+      // How to update the answer dictionary, then update the array, then update the answers entry with the new array?
 
-        answer.upvotes = upvotes;
-        answer.downvotes = downvotes;
-        answer.score = new_ans_score;
+      var a_username = answer.user;
 
-        sodb.collection("verified_users").findOne({"username": a_username}, function(e7, r7) {
-          if (e7) throw e7;
+      if (vote == true) { // upvote answer or undo upvote
+        // First, make sure the person isn't upvoting twice
+        if (upvotes.indexOf(username) >= 0) {
+          console.log("User has already upvoted answer.  Undoing upvote for ANSWER.");
+          upvotes.splice(upvotes.indexOf(username), 1);
+          var new_ans_score = upvotes.length - downvotes.length;
 
-          var old_rep = r7.reputation;
+          answer.upvotes = upvotes;
+          answer.downvotes = downvotes;
+          answer.score = new_ans_score;
+
+          var r2 = await verified_users_collection.findOne({"username": a_username});
+          if (r2 == null) {
+            res.send(403, {"status": "error", "error": "error r2"});
+            return;
+          }
+          var old_rep = r2.reputation;
           if (old_rep > 1) {
-            sodb.collection("verified_users").updateOne({"username": a_username}, {$set: {"reputation": old_rep - 1}}, function(e8, r8) {
-              if (e8) throw e8;
-              console.log("User reputation updated - DOWNVOTE");
-            })
+            var r3 = await verified_users_collection.updateOne({"username": a_username}, {$set: {"reputation": old_rep - 1}});
+            if (r3 == null) {
+              res.send(403, {"status": "error", "error": "error r3"});
+              return;
+            }
+            else console.log("User reputation updated - DOWNVOTE");
           }
           else {
             console.log("Can't downvote user's reputation further");
           }
-        })
 
-        res.json({"status": "OK"});
-        return;
-      }
-      else if (downvotes.indexOf(username) >= 0) { // case if user is in the downvotes array
-        downvotes.splice(downvotes.indexOf(username), 1);
-      }
-      console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length);
+          res.json({"status": "OK"});
+          return;
+        }
+        else if (downvotes.indexOf(username) >= 0) { // case if user is in the downvotes array
+          downvotes.splice(downvotes.indexOf(username), 1);
+        }
+        console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length);
 
-      upvotes.push(username);
-
-      answer.upvotes = upvotes;
-      answer.downvotes = downvotes;
-      var new_ans_score = upvotes.length - downvotes.length;
-      console.log("New answer reputation: " + new_ans_score);
-      answer.score = new_ans_score;
-
-      // How to update the answer dictionary, then update the array, then update the answers entry with the new array?
-      var answerUpdateIndex = result.answers.findIndex(x => x.id === id);
-      if (answerUpdateIndex >= 0) {
-        result.answers[answerUpdateIndex] = answer;
-
-        sodb.collection("answers").updateOne({"answers.id": id}, {$set: {"answers" : result.answers}}, function(e9, r9) {
-          if (e9) throw e9;
-          else {
-            console.log("Answers array updated ... hopefully");
-          }
-        })
-      }
-
-      sodb.collection("verified_users").findOne({"username": a_username}, function(e7, r7) {
-        if (e7) throw e7;
-
-        var old_rep = r7.reputation;
-        sodb.collection("verified_users").updateOne({"username": a_username}, {$set: {"reputation": old_rep + 1}}, function(e8, r8) {
-          if (e8) throw e8;
-          console.log("User reputation updated from ANSWER - DOWNVOTE");
-        })
-      })
-
-      res.json({"status": "OK"});
-    }
-    else { // downvote answer or undo downvote
-      if (downvotes.indexOf(username) >= 0) {
-        console.log("Cannot downvote twice.  Undoing downvote.");
-
-        downvotes.splice(downvotes.indexOf(username), 1);
-
-        var new_score = upvotes.length - downvotes.length;
+        upvotes.push(username);
 
         answer.upvotes = upvotes;
         answer.downvotes = downvotes;
-        answer.score = new_score;
+        var new_ans_score = upvotes.length - downvotes.length;
+        console.log("New answer reputation: " + new_ans_score);
+        answer.score = new_ans_score;
 
         // How to update the answer dictionary, then update the array, then update the answers entry with the new array?
         var answerUpdateIndex = result.answers.findIndex(x => x.id === id);
         if (answerUpdateIndex >= 0) {
           result.answers[answerUpdateIndex] = answer;
 
-          sodb.collection("answers").updateOne({"answers.id": id}, {$set: {"answers" : result.answers}}, function(e9, r9) {
-            if (e9) throw e9;
-            else {
-              console.log("Answers array updated ... hopefully");
-            }
-          })
-        }
-
-        sodb.collection("verified_users").findOne({"username": a_username}, function(e7, r7) {
-          if (e7) throw e7;
-
-          var old_rep = r7.reputation;
-          sodb.collection("verified_users").updateOne({"username": a_username}, {$set: {"reputation": old_rep + 1}}, function(e8, r8) {
-            if (e8) throw e8;
-            console.log("User reputation updated - DOWNVOTE");
-          })
-        })
-
-        res.json({"status": "OK"});
-        return;
-      }
-      else if (upvotes.indexOf(username) >= 0) {
-        upvotes.splice(upvotes.indexOf(username));
-      }
-
-      downvotes.push(username);
-
-      var new_score = upvotes.length - downvotes.length;
-      answer.score = new_score;
-      answer.upvotes = upvotes;
-      answer.downvotes = downvotes;
-
-      // How to update the answer dictionary, then update the array, then update the answers entry with the new array?
-      var answerUpdateIndex = result.answers.findIndex(x => x.id === id);
-      if (answerUpdateIndex >= 0) {
-        result.answers[answerUpdateIndex] = answer;
-
-        sodb.collection("answers").updateOne({"answers.id": id}, {$set: {"answers" : result.answers}}, function(e9, r9) {
-          if (e9) throw e9;
+          var r4 = await answers_collection.updateOne({"answers.id": id}, {$set: {"answers" : result.answers}});
+          if (r4 == null) {
+            res.send(403, {"status": "error", "error": "error r4"});
+            return;
+          }
           else {
             console.log("Answers array updated ... hopefully");
           }
-        })
+        }
+
+        var r5 = await verified_users_collection.findOne({"username": a_username});
+        if (r5 == null) {
+          res.send(403, {"status": "error", "error": "error r5"});
+          return;
+        }
+        var old_rep = r5.reputation;
+        var r6 = await verified_users_collection.updateOne({"username": a_username}, {$set: {"reputation": old_rep + 1}});
+        if (r6 == null) {
+          res.send(403, {"status": "error", "error": "error r6"});
+          return;
+        }
+        else console.log("User reputation updated from ANSWER - DOWNVOTE");
+
+        res.json({"status": "OK"});
       }
+      else { // downvote answer or undo downvote
+        if (downvotes.indexOf(username) >= 0) {
+          console.log("Cannot downvote twice.  Undoing downvote.");
 
-      sodb.collection("verified_users").findOne({"username": a_username}, function(e7, r7) {
-        if (e7) throw e7;
+          downvotes.splice(downvotes.indexOf(username), 1);
 
-        var old_rep = r7.reputation;
+          var new_score = upvotes.length - downvotes.length;
+
+          answer.upvotes = upvotes;
+          answer.downvotes = downvotes;
+          answer.score = new_score;
+
+          // How to update the answer dictionary, then update the array, then update the answers entry with the new array?
+          var answerUpdateIndex = result.answers.findIndex(x => x.id === id);
+          if (answerUpdateIndex >= 0) {
+            result.answers[answerUpdateIndex] = answer;
+
+            var r7 = await answers_collection.updateOne({"answers.id": id}, {$set: {"answers" : result.answers}});
+            if (r7 == null) {
+              res.send(403, {"status": "error", "error": "error r7"});
+              return;
+            }
+            else {
+              console.log("Answers array updated ... hopefully");
+            }
+          }
+
+          var r8 = await verified_users_collection.findOne({"username": a_username});
+          if (r8 == null) {
+            res.send(403, {"status": "error", "error": "error r8"});
+            return;
+          }
+          var old_rep = r8.reputation;
+          var r9 = await verified_users_collection.updateOne({"username": a_username}, {$set: {"reputation": old_rep + 1}});
+          if (r9 == null) {
+            res.send(403, {"status": "error", "error": "error r9"});
+            return;
+          }
+          else console.log("User reputation updated - DOWNVOTE");
+
+          res.json({"status": "OK"});
+          return;
+        }
+        else if (upvotes.indexOf(username) >= 0) {
+          upvotes.splice(upvotes.indexOf(username));
+        }
+
+        downvotes.push(username);
+
+        var new_score = upvotes.length - downvotes.length;
+        answer.score = new_score;
+        answer.upvotes = upvotes;
+        answer.downvotes = downvotes;
+
+        // How to update the answer dictionary, then update the array, then update the answers entry with the new array?
+        var answerUpdateIndex = result.answers.findIndex(x => x.id === id);
+        if (answerUpdateIndex >= 0) {
+          result.answers[answerUpdateIndex] = answer;
+
+          var r10 = await answers_collection.updateOne({"answers.id": id}, {$set: {"answers" : result.answers}});
+          if (r10 == null) {
+            res.send(403, {"status": "error", "error": "error r10"});
+            return;
+          }
+          else {
+            console.log("Answers array updated ... hopefully");
+          }
+        }
+
+        var r11 = await verified_users_collection.findOne({"username": a_username});
+        if (r11 == null) {
+          res.send(403, {"status": "error", "error": "error r11"});
+          return;
+        }
+        var old_rep = r11.reputation;
         if (old_rep > 1) {
-          sodb.collection("verified_users").updateOne({"username": a_username}, {$set: {"reputation": old_rep - 1}}, function(e8, r8) {
-            if (e8) throw e8;
-            console.log("User reputation updated - DOWNVOTE");
-          })
+          var r12 = await verified_users_collection.updateOne({"username": a_username}, {$set: {"reputation": old_rep - 1}});
+          if (r12 == null) {
+            res.send(403, {"status": "error", "error": "error r12"});
+            return;
+          }
+          else console.log("User reputation updated - DOWNVOTE");
         }
         else {
           console.log("Can't downvote user's reputation further");
         }
-      })
 
-      res.json({"status": "OK"});
+        res.json({"status": "OK"});
+      }
     }
-  })
+    catch (e) {
+      res.send(403, {"status": "error", "error": "e: " + e});
+    }
+  }
+
+  a_upvote(req, res);
+  
 })
 
 app.post("/answers/:id/accept", (req, res) => {
