@@ -1330,7 +1330,7 @@ app.post("/answers/:id/upvote", (req, res) => {
       var answers_collection = sodb.collection("answers");
       var verified_users_collection = sodb.collection("verified_users");
 
-      var r1 = await answers.collection.findOne({"answers.id": id}, {"answers": {$elemMatch: {"id": id}}});
+      var r1 = await answers_collection.findOne({"answers.id": id}, {"answers": {$elemMatch: {"id": id}}});
       if (r1 == null) {
         res.send(403, {"status": "error", "error": "error r1"});
         return;
@@ -1521,7 +1521,7 @@ app.post("/answers/:id/upvote", (req, res) => {
   }
 
   a_upvote(req, res);
-  
+
 })
 
 app.post("/answers/:id/accept", (req, res) => {
