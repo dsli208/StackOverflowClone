@@ -1376,7 +1376,7 @@ app.post("/answers/:id/upvote", (req, res) => {
               res.send(403, {"status": "error", "error": "error r3"});
               return;
             }
-            else console.log("User reputation updated - DOWNVOTE");
+            else console.log("User reputation updated - DOWNVOTE (duplicate upvote)");
           }
           else {
             console.log("Can't downvote user's reputation further");
@@ -1386,6 +1386,7 @@ app.post("/answers/:id/upvote", (req, res) => {
           return;
         }
         else if (downvotes.indexOf(username) >= 0) { // case if user is in the downvotes array
+          console.log("Downvote to upvote");
           downvotes.splice(downvotes.indexOf(username), 1);
         }
         console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length);
@@ -1424,7 +1425,7 @@ app.post("/answers/:id/upvote", (req, res) => {
           res.send(403, {"status": "error", "error": "error r6"});
           return;
         }
-        else console.log("User reputation updated from ANSWER - DOWNVOTE");
+        else console.log("User reputation updated from ANSWER - UPVOTE");
 
         res.json({"status": "OK"});
       }
@@ -1469,7 +1470,7 @@ app.post("/answers/:id/upvote", (req, res) => {
             res.send(403, {"status": "error", "error": "error r9"});
             return;
           }
-          else console.log("User reputation updated - DOWNVOTE");
+          else console.log("User reputation updated - UPVOTE (undo downvote)");
 
           res.json({"status": "OK"});
           return;
