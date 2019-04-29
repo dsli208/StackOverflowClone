@@ -674,7 +674,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
         uname = decoded.username;
         console.log(uname);
         var answers_collection = sodb.collection("answers");
-        var answers_collection = sodb.collection("questions");
+        var questions_collection = sodb.collection("questions");
         var r1 = await answers_collection.findOne({"id": id});
         if (r1 == null) {
           console.log("Nonexistent question");
@@ -739,6 +739,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
           var answerobj = {"id": answerid, "user": uname, "body": req.body.body, "score": 0, "is_accepted": false, "timestamp": Date.now() / 1000, "media": a_media, "upvotes": [], "downvotes": []};
 
           var answers_arr = r1.answers;
+          if
           console.log("previous answer count " + answers_arr.length);
           answers_arr.push(answerobj);
           console.log("new answer count " + answers_arr.length);
