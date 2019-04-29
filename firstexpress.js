@@ -1396,11 +1396,11 @@ app.post("/answers/:id/upvote", (req, res) => {
         answer.score = new_ans_score;
 
         // How to update the answer dictionary, then update the array, then update the answers entry with the new array?
-        var answerUpdateIndex = result.answers.findIndex(x => x.id === id);
+        var answerUpdateIndex = r1.answers.findIndex(x => x.id === id);
         if (answerUpdateIndex >= 0) {
-          result.answers[answerUpdateIndex] = answer;
+          r1.answers[answerUpdateIndex] = answer;
 
-          var r4 = await answers_collection.updateOne({"answers.id": id}, {$set: {"answers" : result.answers}});
+          var r4 = await answers_collection.updateOne({"answers.id": id}, {$set: {"answers" : r1.answers}});
           if (r4 == null) {
             res.send(403, {"status": "error", "error": "error r4"});
             return;
@@ -1438,9 +1438,9 @@ app.post("/answers/:id/upvote", (req, res) => {
           answer.score = new_score;
 
           // How to update the answer dictionary, then update the array, then update the answers entry with the new array?
-          var answerUpdateIndex = result.answers.findIndex(x => x.id === id);
+          var answerUpdateIndex = r1.answers.findIndex(x => x.id === id);
           if (answerUpdateIndex >= 0) {
-            result.answers[answerUpdateIndex] = answer;
+            r1.answers[answerUpdateIndex] = answer;
 
             var r7 = await answers_collection.updateOne({"answers.id": id}, {$set: {"answers" : result.answers}});
             if (r7 == null) {
@@ -1480,9 +1480,9 @@ app.post("/answers/:id/upvote", (req, res) => {
         answer.downvotes = downvotes;
 
         // How to update the answer dictionary, then update the array, then update the answers entry with the new array?
-        var answerUpdateIndex = result.answers.findIndex(x => x.id === id);
+        var answerUpdateIndex = r1.answers.findIndex(x => x.id === id);
         if (answerUpdateIndex >= 0) {
-          result.answers[answerUpdateIndex] = answer;
+          r1.answers[answerUpdateIndex] = answer;
 
           var r10 = await answers_collection.updateOne({"answers.id": id}, {$set: {"answers" : result.answers}});
           if (r10 == null) {
