@@ -739,7 +739,10 @@ app.post('/questions/:id/answers/add', (req, res) => {
           var answerobj = {"id": answerid, "user": uname, "body": req.body.body, "score": 0, "is_accepted": false, "timestamp": Date.now() / 1000, "media": a_media, "upvotes": [], "downvotes": []};
 
           var answers_arr = r1.answers;
-          if
+          if (answers_arr == null) {
+            console.log("Null answers_arr");
+            answers_arr = [];
+          }
           console.log("previous answer count " + answers_arr.length);
           answers_arr.push(answerobj);
           console.log("new answer count " + answers_arr.length);
