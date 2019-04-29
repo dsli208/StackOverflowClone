@@ -713,15 +713,16 @@ app.post('/questions/:id/answers/add', (req, res) => {
               }
               else {
                 //var new_used_dict = {$set: {used: true}}; // file isn't used and can be used for this question, mark it used
-                sodb.collection("media").updateOne({"mid": media_id}, {$set: {used: true}}, function(e4, r4) {
-                  if (e4) throw e4;
-                  else if (retdict['status'] == "OK") {
-                    console.log("Media with id " + media_id + " exists and is being marked true at time " + Date.now() + " by user " + uname);
-                    //console.log(r2);
-                    console.log("Media exists");
-                    //console.log(r3);
-                  }
-                })
+                var r4 = await media_collection.updateOne({"mid": media_id}, {$set: {used: true}});
+                if (r4 == null) {
+                  retdict = {"status": "error", "error": "r4 invalid"};
+                }
+                else if (retdict['status'] == "OK") {
+                  console.log("Media with id " + media_id + " exists and is being marked true at time " + Date.now() + " by user " + uname);
+                  //console.log(r2);
+                  console.log("Media exists");
+                  //console.log(r3);
+                }
               }
 
               console.log("Checking for error status");
