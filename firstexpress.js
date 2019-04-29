@@ -1594,7 +1594,7 @@ app.get("/media/:id", (req, res) => {
 })
 
 // Reset functions
-app.get("/reset", (req, res) => {
+app.get("/dbreset", (req, res) => {
   sodb.dropDatabase(function(err, db) {
     if (err) throw err;
     else {
