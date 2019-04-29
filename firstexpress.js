@@ -445,8 +445,14 @@ app.post('/questions/add', (req, res) => {
                   console.log("End of for loop iteration");
                 }
                 // If the for loop completes, set the add_media var to our valid array of media ID's
-                add_media = req.body.media;
-                console.log(add_media);
+                if (retdict['status'] == "error") {
+                  console.log("Media error.  Leaving null");
+                  add_media = [];
+                }
+                else {
+                  add_media = req.body.media;
+                  console.log(add_media);
+                }
               }
 
               console.log("Checking for error status");
@@ -734,7 +740,12 @@ app.post('/questions/:id/answers/add', (req, res) => {
               //console.log("End of for loop iteration");
             }
             // If the for loop completes, set the add_media var to our valid array of media ID's
-            a_media = req.body.media;
+            if (retdict['status'] == "error") {
+              a_media = [];
+            }
+            else {
+              a_media = req.body.media;
+            }
             //console.log(a_media);
           }
           var answerobj = {"id": answerid, "user": uname, "body": req.body.body, "score": 0, "is_accepted": false, "timestamp": Date.now() / 1000, "media": a_media, "upvotes": [], "downvotes": []};
