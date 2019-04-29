@@ -704,18 +704,22 @@ app.post('/questions/:id/answers/add', (req, res) => {
               if (r2 == null) {
                 console.log("Null r2");
                 retdict = {"status": "error", "error": "Media file does not exist for this ID - error"}; // file doesn't exist
+                res.send(403, retdict);
+                return;
               }
               else if (r2.username != uname) {
                 console.log(r2);
                 console.log("Bad username.  Media id " + media_id + " poster " + r2.username + " username " + uname + " time " + Date.now());
                 retdict = {"status": "error", "error": "Only the original asker can use their media"};
-                //res.send(403, ); // Ensure file can only be used by original asker
+                res.send(403, retdict); // Ensure file can only be used by original asker
+                return;
               }
               else if (r2.used) {
                 console.log(r2);
                 console.log("Already used.  Media id " + media_id + " posted by " + r2.username + " username " + uname + " time " + Date.now());
                 retdict = {"status": "error", "error": "Media file " + media_id + " is already being used in another question/answer"};
-                //res.send(403, ); // file is already used
+                res.send(403, retdict);
+                return; // file is already used
               }
               else {
                 //var new_used_dict = {$set: {used: true}}; // file isn't used and can be used for this question, mark it used
