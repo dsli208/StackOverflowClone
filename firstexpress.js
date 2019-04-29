@@ -394,7 +394,7 @@ app.post('/questions/add', (req, res) => {
 
               // HOW TO MAKE SURE THEIR REPUTATION IS NOT ALWAYS 1???
               var u_rep = 0;
-              var add_media = null;
+              var add_media = [];
               var not_error = true;
               // First, get reputation
               console.log(username);
