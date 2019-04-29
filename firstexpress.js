@@ -1596,20 +1596,53 @@ app.get("/media/:id", (req, res) => {
 
 // Reset functions
 app.get("/dbreset", (req, res) => {
-  sodb.dropDatabase(function(err, db) {
-    if (err) throw err;
-    else {
       console.log("DB reset");
-      //mongodb = db;
-      console.log(db);
-      sodb = db("stackoverflowclone");
-      console.log("Database created!");
+
+      // drop all the existing collections one by one, then recreate them all
+      var drop_collections = async function() {
+      sodb.collection("users").drop(function(err, delOK) {
+        if (err) throw err;
+        if (delOK) console.log("Users collection deleted");
+      });
+
+      sodb.collection("verified_users").drop(function(err, delOK) {
+        if (err) throw err;
+        if (delOK) console.log("Verified Users collection deleted");
+      });
+
+      sodb.collection("questions").drop(function(err, delOK) {
+        if (err) throw err;
+        if (delOK) console.log("Questions collection deleted");
+      });
+
+      sodb.collection("answers").drop(function(err, delOK) {
+        if (err) throw err;
+        if (delOK) console.log("Questions collection deleted");
+      });
+
+      sodb.collection("views").drop(function(err, delOK) {
+        if (err) throw err;
+        if (delOK) console.log("Questions collection deleted");
+      });
+
+      sodb.collection("media").drop(function(err, delOK) {
+        if (err) throw err;
+        if (delOK) console.log("Questions collection deleted");
+      });
+
+      sodb.collection("answer_list").drop(function(err, delOK) {
+        if (err) throw err;
+        if (delOK) console.log("Questions collection deleted");
+      });
+      }
+
 
       // Set up GridFS for large media/file storage
       grid = new Grid(db, 'fs');
       //gridfs_bucket = new require('mongodb').GridFSBucket(db);
 
       // Create collections for Users, then Verified Users
+      var recreate_collections = async function() {
       sodb.createCollection("users", function(err, res) {
         if (err) throw err;
         console.log("Users Collection created!");
@@ -1656,8 +1689,8 @@ app.get("/dbreset", (req, res) => {
         if (err) throw err;
         console.log("Created questions index for use during searching.");
       })
-    }
-  })
+      }
+  drop_collections(); recreate_collections();
   res.send("MongoDB reset");
 })
 
