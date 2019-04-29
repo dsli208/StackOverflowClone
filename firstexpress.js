@@ -1388,9 +1388,9 @@ app.post("/answers/:id/upvote", (req, res) => {
         console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length);
 
         upvotes.push(username);
-
         answer.upvotes = upvotes;
         answer.downvotes = downvotes;
+        console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length + " after answer pushed in");
         var new_ans_score = upvotes.length - downvotes.length;
         console.log("New answer reputation: " + new_ans_score);
         answer.score = new_ans_score;
