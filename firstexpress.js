@@ -682,7 +682,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
         }
         else {
           var answerid = randomstring.generate();
-          var a_media = null;
+          var a_media = [];
           var not_error = true;
           var retdict = {"status": "OK"};
           if (req.body.media != null) {
