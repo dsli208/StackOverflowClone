@@ -1323,8 +1323,8 @@ app.post("/answers/:id/upvote", (req, res) => {
 
       // Set default for upvote and change it if the body param is provided
       var vote = true;
-      if (req.body.vote != null) {
-        vote = req.body.vote;
+      if (req.body.upvote != null) {
+        vote = req.body.upvote;
       }
 
       var answers_collection = sodb.collection("answers");
