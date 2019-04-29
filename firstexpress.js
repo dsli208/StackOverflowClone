@@ -1637,10 +1637,6 @@ app.get("/dbreset", (req, res) => {
       }
 
 
-      // Set up GridFS for large media/file storage
-      grid = new Grid(db, 'fs');
-      //gridfs_bucket = new require('mongodb').GridFSBucket(db);
-
       // Create collections for Users, then Verified Users
       var recreate_collections = async function() {
       sodb.createCollection("users", function(err, res) {
