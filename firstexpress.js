@@ -800,9 +800,9 @@ app.post('/questions/:id/answers/add', (req, res) => {
 app.get('/questions/:id/answers', (req, res) => {
     const get_answers_func = async function(req) {
       try {
-        console.log("Trying to get answer");
+        //console.log("Trying to get answer");
         var id = req.params.id;
-        console.log(id);
+        //console.log(id);
 
         var answers_collection = sodb.collection("answers");
         var result = await answers_collection.findOne({"id": id});
@@ -811,8 +811,8 @@ app.get('/questions/:id/answers', (req, res) => {
           res.send(403, {"status": "error", "error": "No such question exists with this ID"});
         }
         else {
-          console.log(result);
-          console.log(result.answers);
+          //console.log(result);
+          //console.log(result.answers);
           res.json({"status": "OK", "answers": result.answers});
         }
       }
