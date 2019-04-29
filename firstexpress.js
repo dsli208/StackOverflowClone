@@ -674,6 +674,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
         uname = decoded.username;
         console.log(uname);
         var answers_collection = sodb.collection("answers");
+        var answers_collection = sodb.collection("questions");
         var r1 = await answers_collection.findOne({"id": id});
         if (r1 == null) {
           console.log("Nonexistent question");
@@ -1600,6 +1601,7 @@ app.get("/dbreset", (req, res) => {
     else {
       console.log("DB reset");
       //mongodb = db;
+      console.log(db);
       sodb = db.db("stackoverflowclone");
       console.log("Database created!");
 
