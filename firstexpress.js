@@ -738,14 +738,20 @@ app.post('/questions/:id/answers/add', (req, res) => {
           var answerobj = {"id": answerid, "user": uname, "body": req.body.body, "score": 0, "is_accepted": false, "timestamp": Date.now() / 1000, "media": a_media, "upvotes": [], "downvotes": []};
 
           var answers_arr = r1.answers;
+          console.log("previous answer count " + answers_arr.length);
           answers_arr.push(answerobj);
-          // console.log(answers_arr);
+          console.log("new answer count " + answers_arr.length);
+
           var new_answer_arr = {$set: {answers: answers_arr}};
 
           // Update DB Entry
           var r5 = await answers_collection.updateOne({"id": id}, new_answer_arr);
+          var r7 = await questions_collection.updateOne({"id": id}, {$set: {answer_count: answers_arr.length}});
           if (r5 == null) {
             res.send(403, {"status": "error", "error": "Error when updating answers database"});
+          }
+          else if (r7 == null) {
+            res.send(403, {"status": "error", "error": "Error when updating answer count in questions database"});
           }
           else if (retdict['status'] == "error") {
             res.send(403, retdict);
@@ -1043,212 +1049,236 @@ app.get('/user/:username/answers', (req, res) => {
 })
 
 // Milestone 3 new functionality
+// Rough draft for UPVOTE functions - CONVERTED TO async
 app.post("/questions/:id/upvote", (req, res) => {
-  var id = req.params.id;
-  var decoded = jwt.verify(req.cookies.access_token, 'so_clone');
-  if (decoded == null) {
-    res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
-    return;
-  }
-  var username = decoded.username;
-
-  if (username == null) {
-    console.log("No user logged in");
-    res.send(403, {"status": "error", "error": "No user logged in"});
-    return;
-  }
-
-  var q_username = null;
-  // Make sure the question exists
-  sodb.collection("questions").findOne({"id": id}, function (err, result) {
-    if (err) throw err;
-    else {
-      q_username = result.user.username;
-    }
-  })
-
-  sodb.collection("views").findOne({"id": id}, function(err, result) {
-    var upvotes = result.upvotes;
-    var downvotes = result.downvotes;
-    var vote = true; // True if upvote, false if downvote
-
-    // Handle case where user has not viewed the question yet
-    /*if (result.views.indexOf(username) < 0) {
-      res.json({"status": "error", "error": "User has not viewed the question yet"});
-      return;
-    }*/
-
-    if (req.body.upvote != null) {
-      vote = req.body.upvote;
-    }
-
-    if (vote == true) {
-      // First, make sure the person isn't upvoting twice
-      if (upvotes.indexOf(username) >= 0) {
-        console.log("User has already upvoted.  Undoing upvote.");
-        upvotes.splice(upvotes.indexOf(username), 1);
-
-        var new_score = upvotes.length - downvotes.length;
-
-        var new_views_dict = {$set: {"upvotes": upvotes, "downvotes": downvotes}};
-
-        sodb.collection("views").updateOne({'id': id}, new_views_dict, function(e5, r5) {
-          if (e5) throw e5;
-
-          else console.log("Votes updated - DOWNVOTE");
-        })
-
-        sodb.collection("questions").updateOne({"id": id}, {$set: {"score": new_score}}, function(e6, r6) {
-          if (e6) throw e6;
-          else console.log("Question reputation updated - DOWNVOTE");
-        })
-
-        sodb.collection("verified_users").findOne({"username": q_username}, function(e7, r7) {
-          if (e7) throw e7;
-
-          var old_rep = r7.reputation;
-          if (old_rep > 1) {
-            sodb.collection("verified_users").updateOne({"username": q_username}, {$set: {"reputation": old_rep - 1}}, function(e8, r8) {
-              if (e8) throw e8;
-              console.log("User reputation updated - DOWNVOTE");
-            })
-          }
-          else {
-            console.log("Can't downvote user's reputation further");
-          }
-        })
-
-        res.json({"status": "OK"});
+  var q_upvote = async function(req, res) {
+    try {
+      var id = req.params.id;
+      var decoded = jwt.verify(req.cookies.access_token, 'so_clone');
+      if (decoded == null) {
+        res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
         return;
       }
-      else if (downvotes.indexOf(username) >= 0) { // case if user is in the downvotes array
-        downvotes.splice(downvotes.indexOf(username), 1);
+      var username = decoded.username;
+
+      if (username == null) {
+        console.log("No user logged in");
+        res.send(403, {"status": "error", "error": "No user logged in"});
+        return;
       }
-      console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length);
 
-      upvotes.push(username);
+      var q_username = null;
+      var questions_collection = sodb.collection("questions");
+      var views_collection = sodb.collection("views");
+      var verified_users_collection = sodb.collection("verified_users");
 
-      var new_score = upvotes.length - downvotes.length;
-      console.log("New reputation: " + new_score);
+      var question = await questions_collection.findOne({"id": id});
+      if (question == null) {
+        res.send(403, {"status": "error", "error": "No question found"});
+        return;
+      }
+      else {
+        q_username = question.user.username;
+      }
 
-      var new_views_dict = {$set: {"upvotes": upvotes, "downvotes": downvotes}};
+      var upvotes = null; var downvotes = null;
+      var vote = true;
+      if (req.body.upvote != null) {
+        vote = req.body.upvote;
+      }
 
-      sodb.collection("views").updateOne({'id': id}, new_views_dict, function(e2, r2) {
-        if (e2) throw e2;
+      var views_result = await views_collection.findOne({"id": id});
+      if (views_result == null) {
+        res.send(403, {"status": "error", "error": "No element found in views collection"});
+        return;
+      }
+      else {
+        upvotes = views_result.upvotes;
+        downvotes = views_result.downvotes;
+      }
 
-        else console.log("Votes updated - UPVOTE");
-      })
-
-      sodb.collection("questions").updateOne({"id": id}, {$set: {"score": new_score}}, function(e3, r3) {
-        if (e3) throw e3;
-        else console.log("Question reputation updated - UPVOTE");
-      })
-
-      sodb.collection("verified_users").findOne({"username": q_username}, function(e7, r7) {
-        if (e7) throw e7;
-
-        var old_rep = r7.reputation;
-        sodb.collection("verified_users").updateOne({"username": q_username}, {$set: {"reputation": old_rep + 1}}, function(e8, r8) {
-          if (e8) throw e8;
-          console.log("User reputation updated - DOWNVOTE");
-        })
-      })
-
-      res.json({"status": "OK"});
-    }
-    else {
-      // We need to get the reputation first, to ensure it won't go below the minimum of 1
-      sodb.collection("questions").findOne({"id": id}, function(e4, r4) {
-        if (e4) throw e4;
-        /*else if (r4.reputation - 1 < 1) {
-          console.log("Question must have a minimum reputation of 1 (subtract 1)");
-          res.json({"status": "error", "error": "Question must have a minimum reputation of 1 (subtract 1)"});
-          return;
-        }*/
-        else {
-          //var q_username = r4.user.username;
-          if (downvotes.indexOf(username) >= 0) {
-            console.log("Cannot downvote twice.  Undoing downvote.");
-
-            downvotes.splice(downvotes.indexOf(username), 1);
+      if (vote == true) {
+          // First, make sure the person isn't upvoting twice
+          if (upvotes.indexOf(username) >= 0) {
+            console.log("User has already upvoted.  Undoing upvote.");
+            upvotes.splice(upvotes.indexOf(username), 1);
 
             var new_score = upvotes.length - downvotes.length;
 
             var new_views_dict = {$set: {"upvotes": upvotes, "downvotes": downvotes}};
 
-            sodb.collection("views").updateOne({'id': id}, new_views_dict, function(e5, r5) {
-              if (e5) throw e5;
+            var r1 = await views_collection.updateOne({'id': id}, new_views_dict);
+            if (r1 == null) {
+              res.send(403, {"status": "error", "error": "error r1"});
+            }
+            else console.log("Votes updated - DOWNVOTE");
 
-              else console.log("Votes updated - DOWNVOTE");
-            })
+            var r2 = await questions_collection.updateOne({"id": id}, {$set: {"score": new_score}});
+            if (r2 == null) {
+              res.send(403, {"status": "error", "error": "error r2"});
+              return;
+            }
+            else console.log("Question reputation updated - DOWNVOTE");
 
-            sodb.collection("questions").updateOne({"id": id}, {$set: {"reputation": new_score}}, function(e6, r6) {
-              if (e6) throw e6;
-              else console.log("Question reputation updated - DOWNVOTE");
-            })
+            var verified_user = await verified_users_collection.findOne({"username": q_username});
+            if (verified_user == null) {
+              res.send(403, {"status": "error", "error": "error no verified user found"});
+            }
+            else {
+              var old_rep = verified_user.reputation;
+              if (old_rep > 1) {
+                var r3 = await verified_users_collection.updateOne({"username": q_username}, {$set: {"reputation": old_rep - 1}});
+                if (r3 == null) {
+                  res.send(403, {"status": "error", "error": "error r3"});
+                  return;
+                }
+                else {
+                  console.log("User reputation updated - DOWNVOTE");
+                }
+              }
+              else {
+                console.log("Can't downvote user's reputation further");
+              }
+            }
 
-            sodb.collection("verified_users").findOne({"username": q_username}, function(e7, r7) {
-              if (e7) throw e7;
+            res.json({"status": "OK"});
+            return;
+          }
+          else if (downvotes.indexOf(username) >= 0) { // case if user is in the downvotes array
+            downvotes.splice(downvotes.indexOf(username), 1);
+          }
+          console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length);
 
-              var old_rep = r7.reputation;
-              sodb.collection("verified_users").updateOne({"username": q_username}, {$set: {"reputation": old_rep + 1}}, function(e8, r8) {
-                if (e8) throw e8;
-                console.log("User reputation updated - DOWNVOTE");
-              })
-            })
+          upvotes.push(username);
+
+          var new_score = upvotes.length - downvotes.length;
+          console.log("New reputation: " + new_score);
+
+          var new_views_dict = {$set: {"upvotes": upvotes, "downvotes": downvotes}};
+          var r4 = await views_collection.updateOne({'id': id}, new_views_dict);
+          if (r4 == null) {
+            res.send(403, {"status": "error", "error": "error r4"});
+          }
+          else console.log("Votes updated - UPVOTE");
+
+          var r5 = await questions_collection.updateOne({"id": id}, {$set: {"score": new_score}});
+          if (r5 == null) {
+            res.send(403, {"status": "error", "error": "error r5"});
+          }
+          else console.log("Question reputation updated - UPVOTE");
+
+          var r6 = await verified_users_collection.findOne({"username": q_username});
+          if (r6 == null) {
+            res.send(403, {"status": "error", "error": "error r6"});
+            return;
+          }
+          else {
+            var old_rep = r6.reputation;
+            var r7 = await verified_users_collection.updateOne({"username": q_username}, {$set: {"reputation": old_rep + 1}});
+            if (r7 == null) {
+              res.send(403, {"status": "error", "error": "error r7"});
+              return;
+            }
+            else console.log("User reputation updated - DOWNVOTE");
+          }
+
+        res.json({"status": "OK"});
+      }
+      else { // results r8 and above
+        var r8 = await questions_collection.findOne({"id": id});
+        if (r8 == null) {
+          res.send(403, {"status": "error", "error": "error r8"});
+          return;
+        }
+
+        if (downvotes.indexOf(username) >= 0) {
+            console.log("Cannot downvote twice.  Undoing downvote.");
+            downvotes.splice(downvotes.indexOf(username), 1);
+            var new_score = upvotes.length - downvotes.length;
+            var new_views_dict = {$set: {"upvotes": upvotes, "downvotes": downvotes}};
+
+            var r9 = await views_collection.updateOne({'id': id}, new_views_dict);
+            if (r9 == null) {
+              res.send(403, {"status": "error", "error": "error r9"});
+              return;
+            }
+            else console.log("Votes updated - DOWNVOTE");
+
+            var r10 = await questions_collection.updateOne({"id": id}, {$set: {"reputation": new_score}});
+            if (r10 == null) {
+              res.send(403, {"status": "error", "error": "error r10"});
+              return;
+            }
+            else console.log("Question reputation updated - DOWNVOTE");
+
+            var r11 = await verified_users_collection.findOne({"username": q_username});
+            if (r11 == null) {
+              res.send(403, {"status": "error", "error": "error r11"});
+              return;
+            }
+            var old_rep = r11.reputation;
+            var r12 = await verified_users_collection.updateOne({"username": q_username}, {$set: {"reputation": old_rep + 1}});
+            if (r12 == null) {
+              res.send(403, {"status": "error", "error": "error r12"});
+              return;
+            }
+            else console.log("User reputation updated - DOWNVOTE");
 
             res.json({"status": "OK"});
             return;
           }
           else if (upvotes.indexOf(username) >= 0) {
             upvotes.splice(upvotes.indexOf(username));
-            /*if (r4.reputation - 2 < 1) {
-              console.log("Question must have a minimum reputation of 1 (subtract 2)");
-              res.json({"status": "error", "error": "Question must have a minimum reputation of 1 (subtract 2)"});
-              return;
-            }
-            else {
-              upvotes.splice(upvotes.indexOf(username));
-            }*/
           }
 
           downvotes.push(username);
 
           var new_score = upvotes.length - downvotes.length;
-
           var new_views_dict = {$set: {"upvotes": upvotes, "downvotes": downvotes}};
+          // vars r13 and up
+          var r13 = await views_collection.updateOne({'id': id}, new_views_dict);
+          if (r13 == null) {
+            res.send(403, {"status": "error", "error": "error r13"});
+            return;
+          }
+          else console.log("Votes updated - DOWNVOTE");
 
-          sodb.collection("views").updateOne({'id': id}, new_views_dict, function(e5, r5) {
-            if (e5) throw e5;
+          var r14 = await questions_collection.updateOne({"id": id}, {$set: {"reputation": new_score}});
+          if (r14 == null) {
+            res.send(403, {"status": "error", "error": "error r14"});
+            return;
+          }
+          else console.log("Question reputation updated - DOWNVOTE");
 
-            else console.log("Votes updated - DOWNVOTE");
-          })
-
-          sodb.collection("questions").updateOne({"id": id}, {$set: {"reputation": new_score}}, function(e6, r6) {
-            if (e6) throw e6;
-            else console.log("Question reputation updated - DOWNVOTE");
-          })
-
-          sodb.collection("verified_users").findOne({"username": q_username}, function(e7, r7) {
-            if (e7) throw e7;
-
-            var old_rep = r7.reputation;
+          var r15 = await verified_users_collection.findOne({"username": q_username});
+          if (r15 == null) {
+            res.send(403, {"status": "error", "error": "error r15"});
+            return;
+          }
+          else {
+            var old_rep = r15.reputation;
             if (old_rep > 1) {
-              sodb.collection("verified_users").updateOne({"username": q_username}, {$set: {"reputation": old_rep - 1}}, function(e8, r8) {
-                if (e8) throw e8;
-                console.log("User reputation updated - DOWNVOTE");
-              })
+              var r16 = await verified_users_collection.updateOne({"username": q_username}, {$set: {"reputation": old_rep - 1}});
+              if (r16 == null) {
+                res.send(403, {"status": "error", "error": "error r16"});
+                return;
+              }
+              else console.log("User reputation updated - DOWNVOTE");
             }
             else {
               console.log("Can't downvote user's reputation further");
             }
-          })
+          }
 
           res.json({"status": "OK"});
-        }
-      })
+          return;
+      }
     }
-  })
+    catch (e) {
+      res.send(403, {"status": "error", "error": "error" + e});
+    }
+  }
+  q_upvote(req, res);
 })
 
 app.post("/answers/:id/upvote", (req, res) => {
