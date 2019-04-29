@@ -1354,8 +1354,11 @@ app.post("/answers/:id/upvote", (req, res) => {
         // First, make sure the person isn't upvoting twice
         if (upvotes.indexOf(username) >= 0) {
           console.log("User has already upvoted answer.  Undoing upvote for ANSWER.");
+          console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length);
           upvotes.splice(upvotes.indexOf(username), 1);
           var new_ans_score = upvotes.length - downvotes.length;
+          console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length + " after answer spliced from downvotes");
+          console.log("New answer score: " + new_ans_score);
 
           answer.upvotes = upvotes;
           answer.downvotes = downvotes;
@@ -1426,12 +1429,15 @@ app.post("/answers/:id/upvote", (req, res) => {
         res.json({"status": "OK"});
       }
       else { // downvote answer or undo downvote
-        if (downvotes.indexOf(username) >= 0) {
+        if (downvotes.indexOf(username) >= 0) { // Undo downvote
           console.log("Cannot downvote twice.  Undoing downvote.");
 
+          console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length);
           downvotes.splice(downvotes.indexOf(username), 1);
+          console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length + " after answer spliced from downvotes");
 
           var new_score = upvotes.length - downvotes.length;
+          console.log("New answer reputation: " + new_ans_score);
 
           answer.upvotes = upvotes;
           answer.downvotes = downvotes;
@@ -1472,9 +1478,12 @@ app.post("/answers/:id/upvote", (req, res) => {
           upvotes.splice(upvotes.indexOf(username));
         }
 
+        console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length);
         downvotes.push(username);
+        console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length + " after answer pushed to downvotes");
 
         var new_score = upvotes.length - downvotes.length;
+        console.log("New answer reputation: " + new_ans_score);
         answer.score = new_score;
         answer.upvotes = upvotes;
         answer.downvotes = downvotes;
