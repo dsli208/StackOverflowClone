@@ -1364,6 +1364,21 @@ app.post("/answers/:id/upvote", (req, res) => {
           answer.downvotes = downvotes;
           answer.score = new_ans_score;
 
+          // How to update the answer dictionary, then update the array, then update the answers entry with the new array?
+          var answerUpdateIndex = r1.answers.findIndex(x => x.id === id);
+          if (answerUpdateIndex >= 0) {
+            r1.answers[answerUpdateIndex] = answer;
+
+            var r4 = await answers_collection.updateOne({"answers.id": id}, {$set: {"answers" : r1.answers}});
+            if (r4 == null) {
+              res.send(403, {"status": "error", "error": "error r4"});
+              return;
+            }
+            else {
+              console.log("Answers array updated ... hopefully");
+            }
+          }
+
           var r2 = await verified_users_collection.findOne({"username": a_username});
           if (r2 == null) {
             res.send(403, {"status": "error", "error": "error r2"});
