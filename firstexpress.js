@@ -841,13 +841,13 @@ app.post('/search', (req, res) => {
 
   if (req != null && req.body != null) {
     console.log(req.body);
-    if (req.body.q.match(/^\s*$/)) {
-      console.log("String of ONLY WHITESPACES");
-    }
     if (req.body.q != null) {
       if (req.body.q != "" && !(req.body.q.match(/^\s*$/))) {
         console.log(req.body.q);
         search_q = req.body.q;
+      }
+      else {
+        console.log("String of ONLY WHITESPACES");
       }
     }
     if (req.body.timestamp != null) {
