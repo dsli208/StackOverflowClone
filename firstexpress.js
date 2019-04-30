@@ -994,7 +994,7 @@ app.delete('/questions/:id', (req, res) => {
                   console.log("err2: " + err2);
                   throw err2;
                 }
-                console.log("Deleting ... delete successful");
+                console.log("Deleting ... successfully deleted id with " + media_id);
               });
 
               var r4 = await media_collection.deleteOne({mid: media_id});
@@ -1690,7 +1690,7 @@ app.post("/addmedia", upload.single('content'), (req, res) => {
         console.log("Hopeful blob content being added");
         console.log(content);
         console.log(err2); // if no error, undefined
-        console.log("Inserted into Cluster?");
+        console.log("Inserted into Cluster media file with id " + fileId);
         if (err2) {
           res.send(403, {"status": "error", "error": "Media error"});
         }
