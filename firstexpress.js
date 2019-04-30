@@ -909,6 +909,11 @@ app.post('/search', (req, res) => {
       query = {$and: query_and_arr};
     }
 
+    if (tags.length > 0) {
+      query_and_arr.push({ tags: { $all: tags } })
+      query = {$and: query_and_arr};
+    }
+
     var sorter = {"timestamp": -1};
     if (sort_by == search_by_options.SCORE) {
       sorter = {"score": -1};
