@@ -900,7 +900,7 @@ app.post('/search', (req, res) => {
     }
 
     if (has_media) {
-      query_and_arr.push({"media":{$ne:null}});
+      query_and_arr.push({"media":{$size:{$gt: 0}}});
       query = {$and: query_and_arr};
     }
 
