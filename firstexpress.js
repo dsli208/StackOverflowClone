@@ -951,7 +951,7 @@ app.post('/search', (req, res) => {
 // Milestone 2 new functions
 
 app.delete('/questions/:id', (req, res) => {
-  var decoded = jwt.verify(req.cookies.access_token, 'so_clone');
+  var decoded = jwt.decode(req.cookies.access_token);
   if (decoded == null) res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
   else if (decoded.username == null) {
     res.send(403,"You do not have rights to do this!");
