@@ -980,10 +980,12 @@ app.delete('/questions/:id', (req, res) => {
         else {
           // Delete all media components from cassandra
           var media_array = r1.media;
+          console.log(media_array);
 
           if (media_array.length > 0) {
             for (var i = 0; i < media_array.length; i++) {
               var media_id = media_array[i];
+              console.log(media_id);
               const query = 'DELETE FROM media WHERE id = ?';
               const params = [media_id];
 
