@@ -998,25 +998,7 @@ app.delete('/questions/:id', (req, res) => {
               }
             }
           }
-          const query = 'INSERT INTO media (id, content, filename) VALUES (?, ?, ?)';
-          const params = [fileId, content, req.file['filename']];
-          cassandra_client.execute(query, params, { prepare: true }, function (err2) {
-            console.log("Hopeful blob content being added");
-            console.log(content);
-            console.log(err2); // if no error, undefined
-            console.log("Inserted into Cluster?");
-            if (err2) {
-              res.send(403, {"status": "error", "error": "Media error"});
-            }
-            else {
-              sodb.collection("media").insertOne({"mid": fileId, "used": false, "username": username}, function(err3, res3) {
-                if (err3) throw err3;
-              })
-              res.json({"status": "OK", "id": fileId});
-            }
-          });
-
-
+          
           // Delete question
           var r2 = await questions_collection.deleteOne({id: id});
           if (r2 == null) {
