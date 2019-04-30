@@ -1068,12 +1068,12 @@ app.get('/user/:username', (req, res) => {
 })
 
 app.get('/user/:username/questions', (req, res) => {
-  var decoded = jwt.verify(req.cookies.access_token, 'so_clone');
+  /*var decoded = jwt.verify(req.cookies.access_token, 'so_clone');
   if (decoded == null) {
     res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
     return;
-  }
-  var username = decoded.username;
+  }*/
+  var username = req.params.username;
   console.log("Username is " + username);
   // Find all questions where user['username'] is the given username
 
