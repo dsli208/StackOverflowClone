@@ -957,6 +957,7 @@ app.delete('/questions/:id', (req, res) => {
       if (decoded == null) res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
       else if (decoded.username == null) {
         res.send(403,"You do not have rights to do this!");
+        return;
       }
       else {
         var id = req.params.id;
@@ -965,10 +966,11 @@ app.delete('/questions/:id', (req, res) => {
         var r1 = await questions_collection.findOne({id: id});
         if (r1 == null) {
           res.send(403, {"status": "error", "error": "Error r1: question not found"});
+          return;
         }
         if (r1.user['username'] != decoded.username) {
           r1.send(403,"You do not have rights to do this!");
-          //res.json({"status": "error", "error": "Only the author can delete their question"});
+          return;
         }
         else {
           sodb.collection("questions").deleteOne({id: id}, function(err, result) {
