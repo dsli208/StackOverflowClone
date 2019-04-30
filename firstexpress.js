@@ -991,6 +991,8 @@ app.delete('/questions/:id', (req, res) => {
       res.send(403, {"status": "error", "error": "Error : " + err});
     }
   }
+
+  delete_q_function(req, res);
 })
 
 app.get('/user/:username', (req, res) => {
