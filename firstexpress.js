@@ -963,6 +963,9 @@ app.delete('/questions/:id', (req, res) => {
         var id = req.params.id;
 
         var questions_collection = sodb.collection("questions");
+        var answers_collection = sodb.collection("answers");
+        var media_collection = sodb.collection("media");
+
         var r1 = await questions_collection.findOne({id: id});
         if (r1 == null) {
           res.send(403, {"status": "error", "error": "Error r1: question not found"});
@@ -973,18 +976,63 @@ app.delete('/questions/:id', (req, res) => {
           return;
         }
         else {
-          sodb.collection("questions").deleteOne({id: id}, function(err, result) {
-            if (err) throw err;
-            console.log("1 question document deleted");
+          // Delete all media components from cassandra
+          var media_array = r1.media;
 
-            // Rough draft for deleting answers and media
-            sodb.collection("answers").deleteOne({id: id}, function(err2, res2) {
-              if (err2) throw err2;
-              console.log("1 answers document deleted");
-            })
+          if (media_array.length > 0) {
+            for (var i = 0; i < media_array.length; i++) {
+              var media_id = media_array[i];
+              const query = 'DELETE FROM media WHERE id = ?';
+              const params = [media_id];
 
-            res.json({"status": "OK"});
+              cassandra_client.execute(query, params, { prepare: true }, function (err2) {
+                if (err2) {
+                  throw err2;
+                }
+                console.log("Deleting ... delete successful");
+              });
+
+              var r4 = await media_collection.deleteOne({mid: media_id});
+              if (r4 == null) {
+                res.send(403, {"status": "error", "error": "error r4"});
+              }
+            }
+          }
+          const query = 'INSERT INTO media (id, content, filename) VALUES (?, ?, ?)';
+          const params = [fileId, content, req.file['filename']];
+          cassandra_client.execute(query, params, { prepare: true }, function (err2) {
+            console.log("Hopeful blob content being added");
+            console.log(content);
+            console.log(err2); // if no error, undefined
+            console.log("Inserted into Cluster?");
+            if (err2) {
+              res.send(403, {"status": "error", "error": "Media error"});
+            }
+            else {
+              sodb.collection("media").insertOne({"mid": fileId, "used": false, "username": username}, function(err3, res3) {
+                if (err3) throw err3;
+              })
+              res.json({"status": "OK", "id": fileId});
+            }
           });
+
+
+          // Delete question
+          var r2 = await questions_collection.deleteOne({id: id});
+          if (r2 == null) {
+            res.send(403, {"status": "error", "error": "Error r2: question not found"});
+            return;
+          }
+          else console.log("1 question document deleted");
+
+          var r3 = await answers_collection.deleteOne({id: id});
+          if (r3 == null) {
+            res.send(403, {"status": "error", "error": "Error r3: question not found"});
+            return;
+          }
+          else console.log("1 answers document deleted");
+
+          res.json({"status": "OK"});
         }
 
       }
