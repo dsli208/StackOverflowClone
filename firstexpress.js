@@ -951,35 +951,45 @@ app.post('/search', (req, res) => {
 // Milestone 2 new functions
 
 app.delete('/questions/:id', (req, res) => {
-  var decoded = jwt.decode(req.cookies.access_token);
-  if (decoded == null) res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
-  else if (decoded.username == null) {
-    res.send(403,"You do not have rights to do this!");
-  }
-  else {
-    var id = req.params.id;
-
-    sodb.collection("questions").findOne({id: id}, function(err, result) {
-      if (err) throw err;
-      if (result.user['username'] != decoded.username) {
+  var delete_q_function = async function(req, res) {
+    try {
+      var decoded = jwt.decode(req.cookies.access_token);
+      if (decoded == null) res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
+      else if (decoded.username == null) {
         res.send(403,"You do not have rights to do this!");
-        //res.json({"status": "error", "error": "Only the author can delete their question"});
       }
       else {
-        sodb.collection("questions").deleteOne({id: id}, function(err, result) {
-          if (err) throw err;
-          console.log("1 question document deleted");
+        var id = req.params.id;
 
-          // Rough draft for deleting answers and media
-          sodb.collection("answers").deleteOne({id: id}, function(err2, res2) {
-            if (err2) throw err2;
-            console.log("1 answers document deleted");
-          })
+        var questions_collection = sodb.collection("questions");
+        var r1 = await questions_collection.findOne({id: id});
+        if (r1 == null) {
+          res.send(403, {"status": "error", "error": "Error r1: question not found"});
+        }
+        if (r1.user['username'] != decoded.username) {
+          r1.send(403,"You do not have rights to do this!");
+          //res.json({"status": "error", "error": "Only the author can delete their question"});
+        }
+        else {
+          sodb.collection("questions").deleteOne({id: id}, function(err, result) {
+            if (err) throw err;
+            console.log("1 question document deleted");
 
-          res.json({"status": "OK"});
-        });
+            // Rough draft for deleting answers and media
+            sodb.collection("answers").deleteOne({id: id}, function(err2, res2) {
+              if (err2) throw err2;
+              console.log("1 answers document deleted");
+            })
+
+            res.json({"status": "OK"});
+          });
+        }
+
       }
-    });
+    }
+    catch (err) {
+      res.send(403, {"status": "error", "error": "Error : " + err});
+    }
   }
 })
 
