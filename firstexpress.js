@@ -968,10 +968,12 @@ app.delete('/questions/:id', (req, res) => {
 
         var r1 = await questions_collection.findOne({id: id});
         if (r1 == null) {
+          console.log("error r1");
           res.send(403, {"status": "error", "error": "Error r1: question not found"});
           return;
         }
         if (r1.user['username'] != decoded.username) {
+          console.log("not original asker error");
           r1.send(403,"You do not have rights to do this!");
           return;
         }
@@ -987,6 +989,7 @@ app.delete('/questions/:id', (req, res) => {
 
               cassandra_client.execute(query, params, { prepare: true }, function (err2) {
                 if (err2) {
+                  console.log("err2: " + err2);
                   throw err2;
                 }
                 console.log("Deleting ... delete successful");
@@ -994,14 +997,16 @@ app.delete('/questions/:id', (req, res) => {
 
               var r4 = await media_collection.deleteOne({mid: media_id});
               if (r4 == null) {
+                console.log("e4");
                 res.send(403, {"status": "error", "error": "error r4"});
               }
             }
           }
-          
+
           // Delete question
           var r2 = await questions_collection.deleteOne({id: id});
           if (r2 == null) {
+            console.log("e2");
             res.send(403, {"status": "error", "error": "Error r2: question not found"});
             return;
           }
@@ -1009,11 +1014,13 @@ app.delete('/questions/:id', (req, res) => {
 
           var r3 = await answers_collection.deleteOne({id: id});
           if (r3 == null) {
+            console.log("e3");
             res.send(403, {"status": "error", "error": "Error r3: question not found"});
             return;
           }
           else console.log("1 answers document deleted");
 
+          console.log("Success.  Returning OK");
           res.json({"status": "OK"});
         }
 
