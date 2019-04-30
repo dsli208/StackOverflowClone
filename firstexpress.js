@@ -1726,7 +1726,7 @@ app.get("/media/:id", (req, res) => {
       console.log("Media result");
       console.log(result);
 
-      if (result.rows[0].content == null) {
+      if (result.rows.length == 0) {
         res.send(403, {"status": "error", "error": "no rows/content"});
         return;
       }
