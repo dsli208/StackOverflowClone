@@ -1721,12 +1721,13 @@ app.get("/media/:id", (req, res) => {
       res.send(403, {"status": "error", "error": "No media file found"});
     }
     else {
-      console.log("Executing retrieve");
+      //console.log("Executing retrieve");
       //res.contentType(req.query.filename.split(".")[1]);
-      console.log("Media result");
-      console.log(result);
+      //console.log("Media result");
+      //console.log(result);
 
       if (result.rows.length == 0) {
+        //console.log("No rows in the table");
         res.send(403, {"status": "error", "error": "no rows/content"});
         return;
       }
