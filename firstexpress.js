@@ -967,6 +967,7 @@ app.delete('/questions/:id', (req, res) => {
         var media_collection = sodb.collection("media");
 
         var r1 = await questions_collection.findOne({id: id});
+        var r5 = await answers_collection.findOne({id: id});
         if (r1 == null) {
           console.log("error r1");
           res.send(403, {"status": "error", "error": "Error r1: question not found"});
@@ -978,13 +979,13 @@ app.delete('/questions/:id', (req, res) => {
           return;
         }
         else {
-          // Delete all media components from cassandra
-          var media_array = r1.media;
+          // Delete all media components from cassandra - QUESTION
+          var q_media_array = r1.media;
           console.log(media_array);
 
-          if (media_array.length > 0) {
-            for (var i = 0; i < media_array.length; i++) {
-              var media_id = media_array[i];
+          if (q_media_array.length > 0) {
+            for (var i = 0; i < q_media_array.length; i++) {
+              var media_id = q_media_array[i];
               console.log(media_id);
               const query = 'DELETE FROM media WHERE id = ?';
               const params = [media_id];
@@ -1005,6 +1006,36 @@ app.delete('/questions/:id', (req, res) => {
             }
           }
 
+          // Delete all media components from cassandra associated with ANY ANSWERS
+          if (r5 != null) {
+            var answers_arr = r5.answers;
+
+            for (var i = 0; i < answers_arr.length; i++) {
+              var a_media_array = answers_arr[i].media;
+
+              for (var j = 0; j < a_media_array.length; j++) {
+                var a_media_id = a_media_array[j];
+                console.log(a_media_id);
+                const query = 'DELETE FROM media WHERE id = ?';
+                const params = [a_media_id];
+
+                cassandra_client.execute(query, params, { prepare: true }, function (err2) {
+                  if (err2) {
+                    console.log("err2: " + err2);
+                    throw err2;
+                  }
+                  console.log("Deleting ... successfully deleted id with " + a_media_id);
+                });
+
+                var r6 = await media_collection.deleteOne({mid: a_media_id});
+                if (r6 == null) {
+                  console.log("e6");
+                  res.send(403, {"status": "error", "error": "error r4"});
+                }
+              }
+            }
+          }
+
           // Delete question
           var r2 = await questions_collection.deleteOne({id: id});
           if (r2 == null) {
@@ -1014,6 +1045,7 @@ app.delete('/questions/:id', (req, res) => {
           }
           else console.log("1 question document deleted");
 
+          // Delete answer
           var r3 = await answers_collection.deleteOne({id: id});
           if (r3 == null) {
             console.log("e3");
