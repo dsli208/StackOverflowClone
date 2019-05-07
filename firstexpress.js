@@ -974,6 +974,8 @@ app.delete('/questions/:id', (req, res) => {
           return;
         }
         if (r1.user['username'] != decoded.username) {
+          console.log(decoded.username);
+          console.log(r1.user['username']);
           console.log("not original asker error");
           r1.send(403,"You do not have rights to do this!");
           return;
