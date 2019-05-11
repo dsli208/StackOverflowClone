@@ -953,7 +953,7 @@ app.post('/search', (req, res) => {
 app.delete('/questions/:id', (req, res) => {
   var delete_q_function = async function(req, res) {
     try {
-      var decoded = jwt.decode(req.cookies.access_token);
+      var decoded = await jwt.verify(req.cookies.access_token, 'so_clone');
       if (decoded == null) res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
       else if (decoded.username == null) {
         res.send(403,"You do not have rights to do this!");
