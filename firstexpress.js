@@ -224,13 +224,14 @@ app.post('/adduser', (req, res) => {
 
     transporter.sendMail(mailOptions, function(error, info){
       if (error) {
-        //console.log("Error message below");
-        //console.log(error);
+        console.log("Error message below");
+        console.log(error);
       } else {
         console.log('Email sent: ' + info.response);
       }
     });
 
+    console.log("Successfuly added user with username " + username);
     res.json({"status": "OK"});
   }
 })
@@ -277,7 +278,7 @@ app.post('/verify', (req, res) => {
 
       // Since we have verified the user, add them to the verified users colelction so that they can log in
           sodb.collection("verified_users").insertOne({username:username, password:password, email: email, reputation: 1}).then(function(err, result) {
-            //console.log("1 verified user added to VERIFIED USERS collection");
+            console.log("1 verified user " + username + " added to VERIFIED USERS collection");
             if (retdict['status'] == 'OK') {
               res.json(retdict);
             }
@@ -285,12 +286,12 @@ app.post('/verify', (req, res) => {
               res.send(403, retdict);
             }
           }).catch(function(err) {
-            //console.log("Email not found error");
+            console.log("Email not found error: " + username);
             retdict = {"status": "error", "error": "Email not found"};
             res.send(403, retdict);
           })
             }).catch(function(err) {
-              //console.log("error");
+              console.log("error: " + username);
               retdict = {"status": "error", "error": "Error - verify"};
               res.send(403, retdict);
             })
@@ -328,8 +329,7 @@ app.post('/login', (req, res) => {
         res.send(403, retdict);
       }
       else {
-        console.log(result.username);
-        console.log("Entry found. Logging in.");
+        console.log("Entry found. Logging in: " + result.username);
 
         // If verified, put them in the session
 
@@ -1084,6 +1084,7 @@ app.get('/user/:username', (req, res) => {
       var verified_users_collection = sodb.collection("verified_users");
       var result = await verified_users_collection.findOne({username: username});
       if (result == null) {
+        console.log(username + " does not exist");
         res.send(403, {"status": "error", "error": "User does not exist"});
       }
       else {
