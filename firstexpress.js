@@ -960,6 +960,7 @@ app.delete('/questions/:id', (req, res) => {
         return;
       }
       else {
+        console.log(decoded);
         var id = req.params.id;
 
         var questions_collection = sodb.collection("questions");
@@ -973,6 +974,7 @@ app.delete('/questions/:id', (req, res) => {
           res.send(403, {"status": "error", "error": "Error r1: question not found"});
           return;
         }
+        console.log(r1);
         if (r1.user['username'] != decoded.username) {
           console.log(decoded.username);
           console.log(r1.user['username']);
