@@ -931,8 +931,8 @@ app.post('/search', (req, res) => {
       }
       else {
         if (result != null) {
-          console.log("Search results:");
-          console.log(result);
+          //console.log("Search results:");
+          //console.log(result);
 
           res.json({"status": "OK", "questions": result});
         }
