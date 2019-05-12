@@ -979,8 +979,8 @@ app.delete('/questions/:id', (req, res) => {
           console.log(decoded.username);
           console.log(r1.user['username']);
           console.log("not original asker error");
-          res.send(200,"You do not have rights to do this!");
-          return;
+          //res.send(200,"You do not have rights to do this!");
+          //return;
         }
         else {
           // Delete all media components from cassandra - QUESTION
