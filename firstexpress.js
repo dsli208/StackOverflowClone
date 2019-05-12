@@ -975,12 +975,12 @@ app.delete('/questions/:id', (req, res) => {
           return;
         }
         console.log(r1);
+        console.log(decoded.username);
+        console.log(r1.user['username']);
         if (r1.user['username'] != decoded.username) {
-          console.log(decoded.username);
-          console.log(r1.user['username']);
           console.log("not original asker error");
-          //res.send(200,"You do not have rights to do this!");
-          //return;
+          res.send(403,"You do not have rights to do this!");
+          return;
         }
         else {
           // Delete all media components from cassandra - QUESTION
@@ -1003,10 +1003,10 @@ app.delete('/questions/:id', (req, res) => {
               });
 
               var r4 = await media_collection.deleteOne({mid: media_id});
-              if (r4 == null) {
+              /*if (r4 == null) {
                 console.log("e4");
                 res.send(403, {"status": "error", "error": "error r4"});
-              }
+              }*/
             }
           }
 
