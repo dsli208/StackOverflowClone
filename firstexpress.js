@@ -975,14 +975,14 @@ app.delete('/questions/:id', (req, res) => {
           return;
         }
         console.log(r1);
-        if (r1.user['username'] != decoded.username) {
+        /*if (r1.user['username'] != decoded.username) {
           console.log(decoded.username);
           console.log(r1.user['username']);
           console.log("not original asker error");
           r1.send(403,"You do not have rights to do this!");
           return;
         }
-        else {
+        else {*/
           // Delete all media components from cassandra - QUESTION
           var q_media_array = r1.media;
           console.log(media_array);
@@ -1060,7 +1060,7 @@ app.delete('/questions/:id', (req, res) => {
 
           console.log("Success.  Returning OK");
           res.json({"status": "OK"});
-        }
+        //}
 
       }
     }
