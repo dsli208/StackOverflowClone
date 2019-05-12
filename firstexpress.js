@@ -985,7 +985,7 @@ app.delete('/questions/:id', (req, res) => {
         else {
           // Delete all media components from cassandra - QUESTION
           var q_media_array = r1.media;
-          console.log(media_array);
+          console.log(q_media_array);
 
           if (q_media_array.length > 0) {
             for (var i = 0; i < q_media_array.length; i++) {
