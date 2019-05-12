@@ -1073,13 +1073,8 @@ app.delete('/questions/:id', (req, res) => {
 })
 
 app.get('/user/:username', (req, res) => {
-  const get_user_func = async function(req) {
+  const get_user_func = async function(req, res) {
     try {
-      /*var decoded = jwt.verify(req.cookies.access_token, 'so_clone');
-      if (decoded == null) res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
-      else if (decoded.username == null) {
-        res.send(403, {"status": "error", "error": "No username given"});
-      }*/
       var username = req.params.username;
       var verified_users_collection = sodb.collection("verified_users");
       var result = await verified_users_collection.findOne({username: username});
@@ -1103,7 +1098,7 @@ app.get('/user/:username', (req, res) => {
       res.json({"status": "error", "error": "error in get user"});
     }
   }
-  get_user_func(req);
+  get_user_func(req, res);
 })
 
 app.get('/user/:username/questions', (req, res) => {
