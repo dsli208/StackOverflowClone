@@ -1134,12 +1134,12 @@ app.get('/user/:username/questions', (req, res) => {
 })
 
 app.get('/user/:username/answers', (req, res) => {
-  var decoded = jwt.verify(req.cookies.access_token, 'so_clone');
+  /*var decoded = await jwt.verify(req.cookies.access_token, 'so_clone');
   if (decoded == null) {
     res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
     return;
-  }
-  var username = decoded.username;
+  }*/
+  var username = req.params.username;
   // Find all answers where user['username'] is the given username
 
   var sorter = {"timestamp": -1}
