@@ -168,7 +168,7 @@ app.post('/test', (req, res) => {
   res.send("Test return value");
 })
 
-app.get('/adduser', (req, res) => res.sendfile(path.join(__dirname + '/stackoverflowclonehome.html')))
+app.get('/adduser', (req, res) => res.sendfile(path.join(__dirname + '/stackoverflowcloneadduser.html')))
 
 app.post('/adduser', (req, res) => {
   const add_user_func = async function(req, res) {
