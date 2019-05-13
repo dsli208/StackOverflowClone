@@ -436,11 +436,11 @@ app.post('/questions/add', (req, res) => {
               u_rep = r1.reputation;
 
               if (req.body.media != null) {
-                console.log("has media");
+                //console.log("has media");
                 // If there is media, check each item of the media array to ensure that it exists in the Cassandra database, AND that it hasn't been used yet
                 for (var i = 0; i < req.body.media.length && not_error; i++) {
                   var media_id = req.body.media[i];
-                  console.log("i = " + i + " and media id is " + media_id);
+                  //console.log("i = " + i + " and media id is " + media_id);
 
                   var media_collection = sodb.collection("media");
                   var r3 = await media_collection.findOne({"mid": media_id});
@@ -455,9 +455,10 @@ app.post('/questions/add', (req, res) => {
                     retdict = {"status": "error", "error": "Only the original asker can use their media"};
                     //res.send(403, ); // Ensure file can only be used by original asker
                   }
-                  else if (r3.used) {
+                  else if (r3.used == true) {
                     console.log(r3);
                     console.log("Already used.  Media id " + media_id + " posted by " + r3.username + " username " + username + " time " + Date.now());
+                    console.log("ALREADY USED ERROR");
                     retdict = {"status": "error", "error": "Media file " + media_id + " is already being used in another question/answer"};
                     //res.send(403, ); // file is already used
                   }
@@ -474,7 +475,7 @@ app.post('/questions/add', (req, res) => {
                     })
                   }
 
-                  console.log("End of for loop iteration");
+                  //console.log("End of for loop iteration");
                 }
                 // If the for loop completes, set the add_media var to our valid array of media ID's
                 if (retdict['status'] == "error") {
@@ -487,13 +488,13 @@ app.post('/questions/add', (req, res) => {
                 }
               }
 
-              console.log("Checking for error status");
+              //console.log("Checking for error status");
               if (retdict['status'] == "error") {
                 console.log("error status");
                 not_error = false;
               }
 
-              console.log("Now on to the last part of the promise");
+              //console.log("Now on to the last part of the promise");
 
               // Create the question
               var obj = {"id": id, "user": {"username": decoded.username, "reputation": u_rep}, "title": req.body.title, "body": req.body.body, "score": 0, "view_count": 1, "answer_count": 0, "timestamp": Date.now() / 1000, "media": add_media, "tags": req.body.tags, "accepted_answer_id": null};
