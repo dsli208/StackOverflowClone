@@ -214,7 +214,7 @@ app.post('/adduser', (req, res) => {
 
         var myobj = { username: username, email: email, password: password, key: key};
 
-        var r2 = users_collection.insertOne(myObj);
+        var r2 = users_collection.insertOne(myobj);
 
         /*sodb.collection("users").insertOne(myobj, function(err, res) {
           if (err) throw err;
