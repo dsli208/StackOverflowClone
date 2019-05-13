@@ -6,11 +6,15 @@
 
     </head>
    <body>
-        <h1> Hello.  Welcome to StackOverflowClone.  Add user </h1><br />
+        <h1> Hello.  Welcome to StackOverflowClone.  Home </h1><br />
         <a href='/adduser'>Add User</a><br />
         <a href='/login'>Login</a><br />
         <a href='/questions/add'>Add Question (if logged in)</a><br />
 
+        <form action='/search' method='post'>
+          Search: <input type="text" name="lastname"><br />
+          <input type="submit" value="Search">
+        </form>
         <p> Questions (when I get to putting in this table): </p>
    </body>
 </html>
