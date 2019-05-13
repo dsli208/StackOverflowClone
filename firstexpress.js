@@ -331,6 +331,7 @@ app.post('/verify', (req, res) => {
         //console.log("InsertOne DB Connection closed");
 })
 
+app.get('/login', (req, res) => res.sendfile(path.join(__dirname + '/stackoverflowclonelogin.html')))
 
 app.post('/login', (req, res) => {
   if (req.body.username == null) {
