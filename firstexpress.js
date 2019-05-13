@@ -400,22 +400,27 @@ app.post('/questions/add', (req, res) => {
             if (decoded == null) {
               console.log("No user logged in at add question - decoded null");
               res.send(403, {"status": "error", "error": "Error: No user logged in or no token found"});
+              return;
             }
             else if (decoded.username == null) {
               console.log("No user logged in at add question");
               res.send(403, {"status": "error", "error": "No user logged in"});
+              return;
             }
             else if (req.body.title == null) {
               console.log("Null title");
               res.send(403, {"status": "error", "error": "No title for the question"});
+              return;
             }
             else if (req.body.body == null) {
               console.log("Null body");
               res.send(403, {"status": "error", "error": "The question needs a body"});
+              return;
             }
             else if (req.body.tags == null) {
               console.log("No tags");
               res.send(403, {"status": "error", "error": "The question needs at least one tag"});
+              return;
             }
             else {
               //console.log("Valid add question case");
@@ -448,23 +453,28 @@ app.post('/questions/add', (req, res) => {
                   if (r3 == null) {
                     console.log("Null r3");
                     retdict = {"status": "error", "error": "Media file does not exist for this ID - error"}; // file doesn't exist
+                    res.send(403, retdict);
+                    return;
                   }
                   else if (r3.username != username) {
                     console.log(r3);
                     console.log("Bad username.  Media id " + media_id + " poster " + r3.username + " username " + username + " time " + Date.now());
                     retdict = {"status": "error", "error": "Only the original asker can use their media"};
-                    //res.send(403, ); // Ensure file can only be used by original asker
+                    res.send(403, retdict); // Ensure file can only be used by original asker
+                    return;
                   }
                   else if (r3.used == true) {
                     console.log(r3);
                     console.log("Already used.  Media id " + media_id + " posted by " + r3.username + " username " + username + " time " + Date.now());
                     console.log("ALREADY USED ERROR");
                     retdict = {"status": "error", "error": "Media file " + media_id + " is already being used in another question/answer"};
-                    //res.send(403, ); // file is already used
+                    res.send(403, retdict); // file is already used
+                    return;
                   }
                   else {
                     //var new_used_dict = {$set: {used: true}}; // file isn't used and can be used for this question, mark it used
                     sodb.collection("media").updateOne({"mid": media_id}, {$set: {used: true}}, function(e4, r4) {
+                      console.log("Marking media file " + media_id + " as true.");
                       if (e4) {
                         console.log(e4);
                         throw e4;
