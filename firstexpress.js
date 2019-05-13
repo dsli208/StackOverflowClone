@@ -381,7 +381,10 @@ app.post('/logout', (req, res) => {
 
 app.get('/questions/add', (req, res) => {
   var decoded = jwt.verify(req.cookies.access_token, 'so_clone');
-  if (decoded == null) res.send(403, "No user logged in right now");
+  if (decoded == null) {
+    console.log("No user logged in ");
+    res.send(403, "No user logged in right now");
+  }
   else {
     res.send("User logged in right now is: " + decoded.username);
   }
@@ -402,12 +405,15 @@ app.post('/questions/add', (req, res) => {
               res.send(403, {"status": "error", "error": "No user logged in"});
             }
             else if (req.body.title == null) {
+              console.log("Null title");
               res.send(403, {"status": "error", "error": "No title for the question"});
             }
             else if (req.body.body == null) {
+              console.log("Null body");
               res.send(403, {"status": "error", "error": "The question needs a body"});
             }
             else if (req.body.tags == null) {
+              console.log("No tags");
               res.send(403, {"status": "error", "error": "The question needs at least one tag"});
             }
             else {
