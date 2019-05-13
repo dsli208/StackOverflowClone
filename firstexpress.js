@@ -4,6 +4,7 @@ var cookieParser = require('cookie-parser')
 const app = express()
 const port = 3000;
 app.use(cookieParser())
+var path = require('path');
 
 //var jwt = require('express-jwt');
 const randomstring = require('randomstring');
