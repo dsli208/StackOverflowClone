@@ -195,6 +195,7 @@ app.post('/adduser', (req, res) => {
 
         var users_collection = sodb.collection("users");
         var r1 = users_collection.findOne({"username": username});
+        console.log(r1);
 
         // Username exists if we stop here ...
         if (r1 != null) {
