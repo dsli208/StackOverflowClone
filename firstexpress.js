@@ -172,7 +172,7 @@ app.get('/adduser', (req, res) => res.send('GET for /adduser'))
 app.post('/adduser', (req, res) => {
   const add_user_func = async function(req, res) {
     try {
-      console.log("Add User POST Request");
+      //console.log("Add User POST Request");
       // Missing key cases
       if (req.body.username == null) {
         res.send(403, {"status": "error", "error": "no username found"});
@@ -195,11 +195,11 @@ app.post('/adduser', (req, res) => {
 
         var users_collection = sodb.collection("users");
         var r1 = await users_collection.findOne({"username": username});
-        console.log(r1);
+        //console.log(r1);
 
         // Username exists if we stop here ...
         if (r1 != null) {
-          console.log("User with the username " + username + " already exists");
+          //console.log("User with the username " + username + " already exists");
           res.send(403, {"status": "error", "error": "User with the username " + username + " already exists"});
           return;
         }
@@ -210,7 +210,7 @@ app.post('/adduser', (req, res) => {
         //console.log("Generating key");
         var key = "abracadabra";
         var email = req.body.email;
-        console.log(email);
+        //console.log(email);
 
         var myobj = { username: username, email: email, password: password, key: key};
 
@@ -242,19 +242,19 @@ app.post('/adduser', (req, res) => {
 
         transporter.sendMail(mailOptions, function(error, info){
           if (error) {
-            console.log("Error message below");
-            console.log(error);
+            //console.log("Error message below");
+            //console.log(error);
           } else {
-            console.log('Email sent: ' + info.response);
+            //console.log('Email sent: ' + info.response);
           }
         });
 
-        console.log("Successfuly added user with username " + username);
+        //console.log("Successfuly added user with username " + username);
         res.json({"status": "OK"});
       }
     }
     catch (e) {
-      console.log("Add user error: " + e);
+      //console.log("Add user error: " + e);
       res.send(403, {"status": "error", "error": e});
     }
   }
@@ -282,7 +282,7 @@ app.post('/verify', (req, res) => {
 
     // Get user email and check it matches up with the key sent to that email
     sodb.collection("users").findOne({email: email}).then(function(result) {
-      console.log(result);
+      //console.log(result);
       if (result == null) {
           console.log("Null result");
 
@@ -303,7 +303,7 @@ app.post('/verify', (req, res) => {
 
       // Since we have verified the user, add them to the verified users colelction so that they can log in
           sodb.collection("verified_users").insertOne({username:username, password:password, email: email, reputation: 1}).then(function(err, result) {
-            console.log("1 verified user " + username + " added to VERIFIED USERS collection");
+            //console.log("1 verified user " + username + " added to VERIFIED USERS collection");
             if (retdict['status'] == 'OK') {
               res.json(retdict);
             }
@@ -354,15 +354,15 @@ app.post('/login', (req, res) => {
         res.send(403, retdict);
       }
       else {
-        console.log("Entry found. Logging in: " + result.username);
+        //console.log("Entry found. Logging in: " + result.username);
 
         // If verified, put them in the session
 
         var token = jwt.sign({username: username}, 'so_clone');
         res.cookie('access_token', token, {secure: false, httpOnly: false});
 
-        console.log("Res headers");
-        console.log(res.header()._headers);
+        //console.log("Res headers");
+        //console.log(res.header()._headers);
 
         res.status(200).send(retdict);
       }
