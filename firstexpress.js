@@ -194,7 +194,7 @@ app.post('/adduser', (req, res) => {
         //console.log("Connecting to DB ...");
 
         var users_collection = sodb.collection("users");
-        var r1 = users_collection.findOne({"username": username});
+        var r1 = await users_collection.findOne({"username": username});
         console.log(r1);
 
         // Username exists if we stop here ...
