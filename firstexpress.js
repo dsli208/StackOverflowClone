@@ -170,70 +170,94 @@ app.post('/test', (req, res) => {
 app.get('/adduser', (req, res) => res.send('GET for /adduser'))
 
 app.post('/adduser', (req, res) => {
-  console.log("Add User POST Request");
-  // Missing key cases
-  if (req.body.username == null) {
-    res.send(403, {"status": "error", "error": "no username found"});
-  }
-  else if (req.body.password == null) {
-    res.send(403, {"status": "error", "error": "no password found"});
-  }
-  else if (req.body.email == null) {
-    res.send(403, {"status": "error", "error": "no email found"});
-  }
-
-  // Every key is in and has a value so ...
-  else {
-    //console.log("All fields found");
-    // Insert into USERS Database
-    var username = req.body.username;
-    var password = req.body.password;
-    //console.log(username + " " + password);
-    //console.log("Connecting to DB ...");
-
-    // Send key to the given email
-    //console.log("Generating key");
-    var key = "abracadabra";
-    var email = req.body.email;
-    console.log(email);
-
-      var myobj = { username: username, email: email, password: password, key: key};
-      sodb.collection("users").insertOne(myobj, function(err, res) {
-        if (err) throw err;
-        //console.log("1 document inserted into USERS collection");
-        //db.close();
-      });
-
-    //Step: 2 Setup message options
-    var mailOptions = {
-      from: 'lennie.lebsack46@ethereal.email',
-      to: email,
-      subject: 'Verification Key',
-      text: 'validation key: <' + key + '>'
-    };
-
-    //Step: 3 Send mail using created transport
-    //console.log("Sending email");
-
-    // Temporary patch fix
-    let transporter = nodemailer.createTransport({
-      host: 'localhost',
-      port: 25,
-      tls: {rejectUnauthorized: false}
-    })
-
-    transporter.sendMail(mailOptions, function(error, info){
-      if (error) {
-        console.log("Error message below");
-        console.log(error);
-      } else {
-        console.log('Email sent: ' + info.response);
+  const add_user_func = async function(req, res) {
+    try {
+      console.log("Add User POST Request");
+      // Missing key cases
+      if (req.body.username == null) {
+        res.send(403, {"status": "error", "error": "no username found"});
       }
-    });
+      else if (req.body.password == null) {
+        res.send(403, {"status": "error", "error": "no password found"});
+      }
+      else if (req.body.email == null) {
+        res.send(403, {"status": "error", "error": "no email found"});
+      }
 
-    console.log("Successfuly added user with username " + username);
-    res.json({"status": "OK"});
+      // Every key is in and has a value so ...
+      else {
+        //console.log("All fields found");
+        // Insert into USERS Database
+        var username = req.body.username;
+        var password = req.body.password;
+        //console.log(username + " " + password);
+        //console.log("Connecting to DB ...");
+
+        var users_collection = sodb.collection("users");
+        var r1 = users_collection.findOne({"username": username});
+
+        // Username exists if we stop here ...
+        if (r1 != null) {
+          console.log("User with the username " + username + " already exists");
+          res.send(403, {"status": "error", "error": "User with the username " + username + " already exists"});
+          return;
+        }
+
+        // If not ... no user exists so go ahead and add the user
+
+        // Send key to the given email
+        //console.log("Generating key");
+        var key = "abracadabra";
+        var email = req.body.email;
+        console.log(email);
+
+        var myobj = { username: username, email: email, password: password, key: key};
+
+        var r2 = users_collection.insertOne(myObj);
+
+        /*sodb.collection("users").insertOne(myobj, function(err, res) {
+          if (err) throw err;
+          //console.log("1 document inserted into USERS collection");
+          //db.close();
+        });*/
+
+        //Step: 2 Setup message options
+        var mailOptions = {
+          from: 'lennie.lebsack46@ethereal.email',
+          to: email,
+          subject: 'Verification Key',
+          text: 'validation key: <' + key + '>'
+        };
+
+        //Step: 3 Send mail using created transport
+        //console.log("Sending email");
+
+        // Temporary patch fix
+        let transporter = nodemailer.createTransport({
+          host: 'localhost',
+          port: 25,
+          tls: {rejectUnauthorized: false}
+        })
+
+        transporter.sendMail(mailOptions, function(error, info){
+          if (error) {
+            console.log("Error message below");
+            console.log(error);
+          } else {
+            console.log('Email sent: ' + info.response);
+          }
+        });
+
+        console.log("Successfuly added user with username " + username);
+        res.json({"status": "OK"});
+      }
+    }
+    catch (e) {
+      console.log("Add user error: " + e);
+      res.send(403, {"status": "error", "error": e});
+    }
   }
+  add_user_func(req, res);
 })
 
 app.post('/verify', (req, res) => {
