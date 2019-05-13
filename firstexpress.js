@@ -451,13 +451,13 @@ app.post('/questions/add', (req, res) => {
                   }
                   else if (r3.username != username) {
                     console.log(r3);
-                    console.log("Bad username.  Media id " + media_id + " poster " + r2.username + " username " + username + " time " + Date.now());
+                    console.log("Bad username.  Media id " + media_id + " poster " + r3.username + " username " + username + " time " + Date.now());
                     retdict = {"status": "error", "error": "Only the original asker can use their media"};
                     //res.send(403, ); // Ensure file can only be used by original asker
                   }
                   else if (r3.used) {
                     console.log(r3);
-                    console.log("Already used.  Media id " + media_id + " posted by " + r2.username + " username " + username + " time " + Date.now());
+                    console.log("Already used.  Media id " + media_id + " posted by " + r3.username + " username " + username + " time " + Date.now());
                     retdict = {"status": "error", "error": "Media file " + media_id + " is already being used in another question/answer"};
                     //res.send(403, ); // file is already used
                   }
