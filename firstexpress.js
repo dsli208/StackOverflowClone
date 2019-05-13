@@ -393,6 +393,7 @@ app.get('/questions/add', (req, res) => {
 app.post('/questions/add', (req, res) => {
   var add_q_async = async function(req, res) {
     try {
+            console.log("POST /questions/add");
             // Modify for handling media array
             var decoded = jwt.verify(req.cookies.access_token, 'so_clone');
             // Base cases
@@ -1106,6 +1107,7 @@ app.delete('/questions/:id', (req, res) => {
 app.get('/user/:username', (req, res) => {
   const get_user_func = async function(req, res) {
     try {
+      console.log("/get/user/username");
       var username = req.params.username;
       var verified_users_collection = sodb.collection("verified_users");
       var result = await verified_users_collection.findOne({username: username});
