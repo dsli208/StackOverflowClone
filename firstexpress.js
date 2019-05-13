@@ -158,7 +158,7 @@ app.use(morgan('combined', {stream: accessLogStream}));
 
 // Milestone 1
 
-app.get('/', (req, res) => res.send('Hello World!'))
+app.get('/', (req, res) => res.sendfile(path.join(__dirname + '/stackoverflowclonehome.html')))
 
 app.post('/', (req, res) => res.send('App running'))
 
