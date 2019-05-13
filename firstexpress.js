@@ -465,7 +465,10 @@ app.post('/questions/add', (req, res) => {
                   else {
                     //var new_used_dict = {$set: {used: true}}; // file isn't used and can be used for this question, mark it used
                     sodb.collection("media").updateOne({"mid": media_id}, {$set: {used: true}}, function(e4, r4) {
-                      if (e4) throw e4;
+                      if (e4) {
+                        console.log(e4);
+                        throw e4;
+                      }
                       else if (retdict['status'] == "OK") {
                         console.log("Media with id " + media_id + " exists and is being marked true at time " + Date.now() + " by user " + username);
                         //console.log(r2);
@@ -516,13 +519,13 @@ app.post('/questions/add', (req, res) => {
                 }
               }
               else {
-                console.log("Question successfully inserted into Questions collection");
+                //console.log("Question successfully inserted into Questions collection");
                 sodb.collection("answers").insertOne({"id": id, "answers": []}, function(err2, res2) {
                   if (err2) {
                     console.log("err2: " + err2);
                     throw err2;
                   }
-                  else console.log("Counterpart for this question in the answers collection also created.");
+                  //else console.log("Counterpart for this question in the answers collection also created.");
                 })
                 sodb.collection("views").insertOne({"id": id, "views": [], "upvotes": [], "downvotes": []}, function(err3, res3) {
                   if (err3) {
