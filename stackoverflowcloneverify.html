@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/tictactoe.css') }}">
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+
+    </head>
+   <body>
+        <h1> Hello.  Welcome to StackOverflowClone.  Verify </h1><br />
+        <form action="/verify" method="post">
+           <p>Username <input type = "text" name = "email" /></p>
+            <p>Password <input type="password" name="key" /></p>
+            <p><input type = "submit" value = "verify" /></p>
+        </form>
+
+   </body>
+</html>
