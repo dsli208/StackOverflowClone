@@ -567,7 +567,7 @@ app.post('/questions/add', (req, res) => {
           }
           catch (e) {
             console.log("error: " + e);
-            res.status(403).send({"status": "error", "error": "Function error"});
+            res.status(403).send({"status": "error", "error": "Function error" + e});
           }
         }
       add_q_async(req, res);
@@ -781,14 +781,14 @@ app.post('/questions/:id/answers/add', (req, res) => {
                   retdict = {"status": "error", "error": "r4 invalid"};
                 }
                 else if (retdict['status'] == "OK") {
-                  console.log("Media with id " + media_id + " exists and is being marked true at time " + Date.now() + " by user " + uname);
+                  //console.log("Media with id " + media_id + " exists and is being marked true at time " + Date.now() + " by user " + uname);
                   //console.log(r2);
-                  console.log("Media exists");
+                  //console.log("Media exists");
                   //console.log(r3);
                 }
               }
 
-              console.log("Checking for error status");
+              //console.log("Checking for error status");
               if (retdict['status'] == "error") {
                 console.log("error status");
                 not_error = false;
@@ -812,9 +812,9 @@ app.post('/questions/:id/answers/add', (req, res) => {
             console.log("Null answers_arr");
             answers_arr = [];
           }
-          console.log("previous answer count " + answers_arr.length);
+          //console.log("previous answer count " + answers_arr.length);
           answers_arr.push(answerobj);
-          console.log("new answer count " + answers_arr.length);
+          //console.log("new answer count " + answers_arr.length);
 
           var new_answer_arr = {$set: {answers: answers_arr}};
 
@@ -835,7 +835,7 @@ app.post('/questions/:id/answers/add', (req, res) => {
             if (r6 != null) {
               console.log(r6);
             }
-            console.log("Answer added: " + answerid);
+            //console.log("Answer added: " + answerid);
             res.json({"status": "OK", "id": answerid});
           }
         }
@@ -947,7 +947,7 @@ app.post('/search', (req, res) => {
     var query = {"timestamp": {$lte: timestamp}};
     var query_and_arr = [query];
     if (search_q != null) {
-      console.log("Modifying query");
+      //console.log("Modifying query");
       query_and_arr.push({"$text": {"$search": search_q}});
       // remember to CREATE SEARCH INDEX in the questions db for this: db.questions.createIndex({"title": "text", "body": "text"})
       //query = {$and:[{"timestamp": {$lte: timestamp}}, {"$text": {"$search": search_q}}]}; // Add a search query here
@@ -1072,7 +1072,7 @@ app.delete('/questions/:id', (req, res) => {
 
               for (var j = 0; j < a_media_array.length; j++) {
                 var a_media_id = a_media_array[j];
-                console.log(a_media_id);
+                //console.log(a_media_id);
                 const query = 'DELETE FROM media WHERE id = ?';
                 const params = [a_media_id];
 
@@ -1081,7 +1081,7 @@ app.delete('/questions/:id', (req, res) => {
                     console.log("err2: " + err2);
                     throw err2;
                   }
-                  console.log("Deleting ... successfully deleted id with " + a_media_id);
+                  //console.log("Deleting ... successfully deleted id with " + a_media_id);
                 });
 
                 var r6 = await media_collection.deleteOne({mid: a_media_id});
@@ -1100,7 +1100,7 @@ app.delete('/questions/:id', (req, res) => {
             res.send(403, {"status": "error", "error": "Error r2: question not found"});
             return;
           }
-          else console.log("1 question document deleted");
+          //else console.log("1 question document deleted");
 
           // Delete answer
           var r3 = await answers_collection.deleteOne({id: id});
@@ -1137,7 +1137,7 @@ app.get('/user/:username', (req, res) => {
         res.send(403, {"status": "error", "error": "User does not exist"});
       }
       else {
-        console.log("user found");
+        //console.log("user found");
 
         // Obtain the user details
         var email = result.email;
@@ -1162,7 +1162,7 @@ app.get('/user/:username/questions', (req, res) => {
     return;
   }*/
   var username = req.params.username;
-  console.log("Username is " + username);
+  //console.log("Username is " + username);
   // Find all questions where user['username'] is the given username
 
   sodb.collection("questions").find({"user.username": username}).toArray(function (err, result) {
@@ -1175,8 +1175,8 @@ app.get('/user/:username/questions', (req, res) => {
       q_id_arr.push(e.id);
     })
 
-    console.log(result);
-    console.log(q_id_arr);
+    //console.log(result);
+    //console.log(q_id_arr);
 
     res.json({"status": "OK", "questions": q_id_arr});
   })
@@ -1198,7 +1198,7 @@ app.get('/user/:username/answers', (req, res) => {
     // return the array of Question ID's
     var a_id_arr = [];
 
-    console.log(result);
+    //console.log(result);
 
     result.forEach (e => {
       var ans = e.answers;
@@ -1267,7 +1267,7 @@ app.post("/questions/:id/upvote", (req, res) => {
       if (vote == true) {
           // First, make sure the person isn't upvoting twice
           if (upvotes.indexOf(username) >= 0) {
-            console.log("User has already upvoted.  Undoing upvote.");
+            //console.log("User has already upvoted.  Undoing upvote.");
             upvotes.splice(upvotes.indexOf(username), 1);
 
             var new_score = upvotes.length - downvotes.length;
@@ -1278,14 +1278,14 @@ app.post("/questions/:id/upvote", (req, res) => {
             if (r1 == null) {
               res.send(403, {"status": "error", "error": "error r1"});
             }
-            else console.log("Votes updated - DOWNVOTE");
+            //else console.log("Votes updated - DOWNVOTE");
 
             var r2 = await questions_collection.updateOne({"id": id}, {$set: {"score": new_score}});
             if (r2 == null) {
               res.send(403, {"status": "error", "error": "error r2"});
               return;
             }
-            else console.log("Question reputation updated - DOWNVOTE");
+            //else console.log("Question reputation updated - DOWNVOTE");
 
             var verified_user = await verified_users_collection.findOne({"username": q_username});
             if (verified_user == null) {
@@ -1300,11 +1300,11 @@ app.post("/questions/:id/upvote", (req, res) => {
                   return;
                 }
                 else {
-                  console.log("User reputation updated - DOWNVOTE");
+                  //console.log("User reputation updated - DOWNVOTE");
                 }
               }
               else {
-                console.log("Can't downvote user's reputation further");
+                //console.log("Can't downvote user's reputation further");
               }
             }
 
@@ -1314,25 +1314,25 @@ app.post("/questions/:id/upvote", (req, res) => {
           else if (downvotes.indexOf(username) >= 0) { // case if user is in the downvotes array
             downvotes.splice(downvotes.indexOf(username), 1);
           }
-          console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length);
+          //console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length);
 
           upvotes.push(username);
 
           var new_score = upvotes.length - downvotes.length;
-          console.log("New reputation: " + new_score);
+          //console.log("New reputation: " + new_score);
 
           var new_views_dict = {$set: {"upvotes": upvotes, "downvotes": downvotes}};
           var r4 = await views_collection.updateOne({'id': id}, new_views_dict);
           if (r4 == null) {
             res.send(403, {"status": "error", "error": "error r4"});
           }
-          else console.log("Votes updated - UPVOTE");
+          //else console.log("Votes updated - UPVOTE");
 
           var r5 = await questions_collection.updateOne({"id": id}, {$set: {"score": new_score}});
           if (r5 == null) {
             res.send(403, {"status": "error", "error": "error r5"});
           }
-          else console.log("Question reputation updated - UPVOTE");
+          //else console.log("Question reputation updated - UPVOTE");
 
           var r6 = await verified_users_collection.findOne({"username": q_username});
           if (r6 == null) {
@@ -1346,7 +1346,7 @@ app.post("/questions/:id/upvote", (req, res) => {
               res.send(403, {"status": "error", "error": "error r7"});
               return;
             }
-            else console.log("User reputation updated - DOWNVOTE");
+            //else console.log("User reputation updated - DOWNVOTE");
           }
 
         res.json({"status": "OK"});
@@ -1359,7 +1359,7 @@ app.post("/questions/:id/upvote", (req, res) => {
         }
 
         if (downvotes.indexOf(username) >= 0) {
-            console.log("Cannot downvote twice.  Undoing downvote.");
+            //console.log("Cannot downvote twice.  Undoing downvote.");
             downvotes.splice(downvotes.indexOf(username), 1);
             var new_score = upvotes.length - downvotes.length;
             var new_views_dict = {$set: {"upvotes": upvotes, "downvotes": downvotes}};
@@ -1369,14 +1369,14 @@ app.post("/questions/:id/upvote", (req, res) => {
               res.send(403, {"status": "error", "error": "error r9"});
               return;
             }
-            else console.log("Votes updated - DOWNVOTE");
+            //else console.log("Votes updated - DOWNVOTE");
 
             var r10 = await questions_collection.updateOne({"id": id}, {$set: {"score": new_score}});
             if (r10 == null) {
               res.send(403, {"status": "error", "error": "error r10"});
               return;
             }
-            else console.log("Question reputation updated - DOWNVOTE");
+            //else console.log("Question reputation updated - DOWNVOTE");
 
             var r11 = await verified_users_collection.findOne({"username": q_username});
             if (r11 == null) {
@@ -1389,7 +1389,7 @@ app.post("/questions/:id/upvote", (req, res) => {
               res.send(403, {"status": "error", "error": "error r12"});
               return;
             }
-            else console.log("User reputation updated - DOWNVOTE");
+            //else console.log("User reputation updated - DOWNVOTE");
 
             res.json({"status": "OK"});
             return;
@@ -1408,14 +1408,14 @@ app.post("/questions/:id/upvote", (req, res) => {
             res.send(403, {"status": "error", "error": "error r13"});
             return;
           }
-          else console.log("Votes updated - DOWNVOTE");
+          //else console.log("Votes updated - DOWNVOTE");
 
           var r14 = await questions_collection.updateOne({"id": id}, {$set: {"score": new_score}});
           if (r14 == null) {
             res.send(403, {"status": "error", "error": "error r14"});
             return;
           }
-          else console.log("Question reputation updated - DOWNVOTE");
+          //else console.log("Question reputation updated - DOWNVOTE");
 
           var r15 = await verified_users_collection.findOne({"username": q_username});
           if (r15 == null) {
@@ -1430,10 +1430,10 @@ app.post("/questions/:id/upvote", (req, res) => {
                 res.send(403, {"status": "error", "error": "error r16"});
                 return;
               }
-              else console.log("User reputation updated - DOWNVOTE");
+              //else console.log("User reputation updated - DOWNVOTE");
             }
             else {
-              console.log("Can't downvote user's reputation further");
+              //console.log("Can't downvote user's reputation further");
             }
           }
 
@@ -1482,11 +1482,11 @@ app.post("/answers/:id/upvote", (req, res) => {
         return;
       }
 
-      console.log(r1);
-      console.log("End of answers result");
+      //console.log(r1);
+      //console.log("End of answers result");
 
       var answer = r1.answers.find(x => x.id === id); // if not compatible, maybe use lodash here?
-      console.log(answer);
+      //console.log(answer);
 
       // given our answer, now upvote/downvote it, and change score accordingly
       var score = answer.score;
@@ -1499,12 +1499,12 @@ app.post("/answers/:id/upvote", (req, res) => {
       if (vote == true) { // upvote answer or undo upvote
         // First, make sure the person isn't upvoting twice
         if (upvotes.indexOf(username) >= 0) {
-          console.log("User has already upvoted answer.  Undoing upvote for ANSWER.");
-          console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length);
+          //console.log("User has already upvoted answer.  Undoing upvote for ANSWER.");
+          //console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length);
           upvotes.splice(upvotes.indexOf(username), 1);
           var new_ans_score = upvotes.length - downvotes.length;
-          console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length + " after answer spliced from downvotes");
-          console.log("New answer score: " + new_ans_score);
+          //console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length + " after answer spliced from downvotes");
+          //console.log("New answer score: " + new_ans_score);
 
           answer.upvotes = upvotes;
           answer.downvotes = downvotes;
@@ -1521,7 +1521,7 @@ app.post("/answers/:id/upvote", (req, res) => {
               return;
             }
             else {
-              console.log("Answers array updated ... hopefully");
+              //console.log("Answers array updated ... hopefully");
             }
           }
 
@@ -1537,27 +1537,27 @@ app.post("/answers/:id/upvote", (req, res) => {
               res.send(403, {"status": "error", "error": "error r3"});
               return;
             }
-            else console.log("User reputation updated - DOWNVOTE (duplicate upvote)");
+            //else console.log("User reputation updated - DOWNVOTE (duplicate upvote)");
           }
           else {
-            console.log("Can't downvote user's reputation further");
+            //console.log("Can't downvote user's reputation further");
           }
 
           res.json({"status": "OK"});
           return;
         }
         else if (downvotes.indexOf(username) >= 0) { // case if user is in the downvotes array
-          console.log("Downvote to upvote");
+          //console.log("Downvote to upvote");
           downvotes.splice(downvotes.indexOf(username), 1);
         }
-        console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length);
+        //console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length);
 
         upvotes.push(username);
         answer.upvotes = upvotes;
         answer.downvotes = downvotes;
-        console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length + " after answer pushed in");
+        //console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length + " after answer pushed in");
         var new_ans_score = upvotes.length - downvotes.length;
-        console.log("New answer reputation: " + new_ans_score);
+        //console.log("New answer reputation: " + new_ans_score);
         answer.score = new_ans_score;
 
         // How to update the answer dictionary, then update the array, then update the answers entry with the new array?
@@ -1571,7 +1571,7 @@ app.post("/answers/:id/upvote", (req, res) => {
             return;
           }
           else {
-            console.log("Answers array updated ... hopefully");
+            //console.log("Answers array updated ... hopefully");
           }
         }
 
@@ -1586,20 +1586,20 @@ app.post("/answers/:id/upvote", (req, res) => {
           res.send(403, {"status": "error", "error": "error r6"});
           return;
         }
-        else console.log("User reputation updated from ANSWER - UPVOTE");
+        //else console.log("User reputation updated from ANSWER - UPVOTE");
 
         res.json({"status": "OK"});
       }
       else { // downvote answer or undo downvote
         if (downvotes.indexOf(username) >= 0) { // Undo downvote
-          console.log("Cannot downvote twice.  Undoing downvote.");
+          //console.log("Cannot downvote twice.  Undoing downvote.");
 
-          console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length);
+          //console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length);
           downvotes.splice(downvotes.indexOf(username), 1);
-          console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length + " after answer spliced from downvotes");
+          //console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length + " after answer spliced from downvotes");
 
           var new_score = upvotes.length - downvotes.length;
-          console.log("New answer reputation: " + new_ans_score);
+          //console.log("New answer reputation: " + new_ans_score);
 
           answer.upvotes = upvotes;
           answer.downvotes = downvotes;
@@ -1616,7 +1616,7 @@ app.post("/answers/:id/upvote", (req, res) => {
               return;
             }
             else {
-              console.log("Answers array updated ... hopefully");
+              //console.log("Answers array updated ... hopefully");
             }
           }
 
@@ -1631,7 +1631,7 @@ app.post("/answers/:id/upvote", (req, res) => {
             res.send(403, {"status": "error", "error": "error r9"});
             return;
           }
-          else console.log("User reputation updated - UPVOTE (undo downvote)");
+          //else console.log("User reputation updated - UPVOTE (undo downvote)");
 
           res.json({"status": "OK"});
           return;
@@ -1640,12 +1640,12 @@ app.post("/answers/:id/upvote", (req, res) => {
           upvotes.splice(upvotes.indexOf(username));
         }
 
-        console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length);
+        //console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length);
         downvotes.push(username);
-        console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length + " after answer pushed to downvotes");
+        //console.log("Upvotes: " + upvotes.length + " Downvotes: " + downvotes.length + " after answer pushed to downvotes");
 
         var new_score = upvotes.length - downvotes.length;
-        console.log("New answer reputation: " + new_ans_score);
+        //console.log("New answer reputation: " + new_ans_score);
         answer.score = new_score;
         answer.upvotes = upvotes;
         answer.downvotes = downvotes;
@@ -1661,7 +1661,7 @@ app.post("/answers/:id/upvote", (req, res) => {
             return;
           }
           else {
-            console.log("Answers array updated ... hopefully");
+            //console.log("Answers array updated ... hopefully");
           }
         }
 
@@ -1677,10 +1677,10 @@ app.post("/answers/:id/upvote", (req, res) => {
             res.send(403, {"status": "error", "error": "error r12"});
             return;
           }
-          else console.log("User reputation updated - DOWNVOTE");
+          //else console.log("User reputation updated - DOWNVOTE");
         }
         else {
-          console.log("Can't downvote user's reputation further");
+          //console.log("Can't downvote user's reputation further");
         }
 
         res.json({"status": "OK"});
@@ -1707,7 +1707,7 @@ app.post("/answers/:id/accept", (req, res) => {
   var username = decoded.username;
 
   if (username == null) {
-    console.log("No user logged in");
+    //console.log("No user logged in");
     res.send(403, {"status": "error", "error": "No user logged in - accept answer"});
     return;
   }
@@ -1724,7 +1724,7 @@ app.post("/answers/:id/accept", (req, res) => {
           sodb.collection("questions").updateOne({id: result.id}, {$set: {accepted_answer_id: id}}, function(e2, r2) {
             if (e2) throw e2;
             else {
-              console.log("Answer accepted!");
+              //console.log("Answer accepted!");
               res.json({"status": "OK"});
             }
           })
@@ -1739,7 +1739,7 @@ app.post("/answers/:id/accept", (req, res) => {
 
 // Takes in FORM DATA, you may need to install something like multer
 app.post("/addmedia", upload.single('content'), (req, res) => {
-  console.log("add media");
+  //console.log("add media");
   // Check that user is logged in
   jwt.verify(req.cookies.access_token, 'so_clone', function(err, decoded) {
     if (err || decoded == null) {
@@ -1773,10 +1773,10 @@ app.post("/addmedia", upload.single('content'), (req, res) => {
       const query = 'INSERT INTO media (id, content, filename) VALUES (?, ?, ?)';
       const params = [fileId, content, req.file['filename']];
       cassandra_client.execute(query, params, { prepare: true }, function (err2) {
-        console.log("Hopeful blob content being added");
-        console.log(content);
-        console.log(err2); // if no error, undefined
-        console.log("Inserted into Cluster media file with id " + fileId);
+        //console.log("Hopeful blob content being added");
+        //console.log(content);
+        //console.log(err2); // if no error, undefined
+        //console.log("Inserted into Cluster media file with id " + fileId);
         if (err2) {
           res.send(403, {"status": "error", "error": "Media error"});
         }
@@ -1795,7 +1795,7 @@ app.post("/addmedia", upload.single('content'), (req, res) => {
 
 app.get("/media/:id", (req, res) => {
   var id = req.params.id;
-  console.log("Media id: " + id);
+  //console.log("Media id: " + id);
 
   const query = "SELECT content FROM media WHERE id = ?";
   const params = [id];
