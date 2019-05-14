@@ -250,7 +250,7 @@ app.post('/adduser', (req, res) => {
           }
         });
 
-        //console.log("Successfuly added user with username " + username);
+        console.log("Successfuly added user with username " + username);
         res.json({"status": "OK"});
       }
     }
@@ -268,9 +268,11 @@ app.get('verify', (req, res) => {
 
 app.post('/verify', (req, res) => {
   if (req.body.email == null) {
+    console.log("No email found");
     res.send(403, {"status": "error", "error": "no email found"});
   }
   else if (req.body.key == null) {
+    console.log("No verification key found");
     res.send(403, {"status": "error", "error": "no verification key found"});
   }
   // All forms filled
@@ -310,6 +312,7 @@ app.post('/verify', (req, res) => {
           sodb.collection("verified_users").insertOne({username:username, password:password, email: email, reputation: 1}).then(function(err, result) {
             //console.log("1 verified user " + username + " added to VERIFIED USERS collection");
             if (retdict['status'] == 'OK') {
+              console.log("Successfully verified " + username);
               res.json(retdict);
             }
             else {
@@ -352,15 +355,17 @@ app.post('/login', (req, res) => {
         res.send(403, retdict);
       }
       else if (result == null) {
+        console.log("Nonexistent user - login");
         retdict = {"status":"error", "error": "User not verified or does not exist"};
         res.send(403, retdict);
       }
       else if (result.password !== password) {
+        console.log("Wrong details - login");
         retdict = {"status": "error", "error": "Username and password do not match up."};
         res.send(403, retdict);
       }
       else {
-        //console.log("Entry found. Logging in: " + result.username);
+        console.log("Entry found. Logging in: " + result.username);
 
         // If verified, put them in the session
 
