@@ -300,14 +300,16 @@ app.post('/verify', (req, res) => {
 
             retdict = {"status": "error", "error": "User not found with this key/email"};
             //console.log(retdict);
-            //throw err;
+            res.send(403, retdict);
+            return;
         }
         else if (user_result.key != key) {
             //console.log(result);
             //console.log(result.key);
             //console.log("Key does not match up");
             retdict = {"status": "error", "error": "Email and key do not match up."};
-            //throw err;
+            res.send(403, retdict);
+            return;
         }
         else {
           console.log(user_result.email);
@@ -327,7 +329,8 @@ app.post('/verify', (req, res) => {
       }
     }
     catch (e) {
-
+      console.log("Verify error: " + e);
+      res.send(403, {"status": "error", "error": e});
     }
   }
 
