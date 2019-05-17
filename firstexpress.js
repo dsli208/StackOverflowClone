@@ -262,76 +262,75 @@ app.post('/adduser', (req, res) => {
   add_user_func(req, res);
 })
 
-app.get('verify', (req, res) => {
+app.get('/verify', (req, res) => {
   res.sendfile(path.join(__dirname + '/stackoverflowcloneverify.html'))
 })
 
 app.post('/verify', (req, res) => {
-  if (req.body.email == null) {
-    console.log("No email found");
-    res.send(403, {"status": "error", "error": "no email found"});
-  }
-  else if (req.body.key == null) {
-    console.log("No verification key found");
-    res.send(403, {"status": "error", "error": "no verification key found"});
-  }
-  // All forms filled
-  else {
-    var retdict = {"status":"OK"};
-    var email = req.body.email;
-    var key = req.body.key;
-
-    var username = "", password = "";
-
-    // Find the user in the database, then make sure email matches the Key
-    //console.log("Connecting to DB...");
-    //console.log(retdict);
-
-    // Get user email and check it matches up with the key sent to that email
-    sodb.collection("users").findOne({email: email}).then(function(result) {
-      //console.log(result);
-      if (result == null) {
-          console.log("Null result");
-
-          retdict = {"status": "error", "error": "User not found with this key/email"};
-          //console.log(retdict);
-          throw err;
+  const verify_function = async function(req, res) {
+    try {
+      if (req.body.email == null) {
+        console.log("No email found");
+        res.send(403, {"status": "error", "error": "no email found"});
       }
-      else if (result.key != key) {
-          //console.log(result);
-          //console.log(result.key);
-          //console.log("Key does not match up");
-          retdict = {"status": "error", "error": "Email and key do not match up."};
-          throw err;
+      else if (req.body.key == null) {
+        console.log("No verification key found");
+        res.send(403, {"status": "error", "error": "no verification key found"});
       }
-      else { console.log(result.email);username = result.username; password = result.password;}
-    }).then(function() {
-      //console.log("Connected to DB for insert");
+      else {
+        var retdict = {"status":"OK"};
+        var email = req.body.email;
+        var key = req.body.key;
 
-      // Since we have verified the user, add them to the verified users colelction so that they can log in
-          sodb.collection("verified_users").insertOne({username:username, password:password, email: email, reputation: 1}).then(function(err, result) {
-            //console.log("1 verified user " + username + " added to VERIFIED USERS collection");
-            if (retdict['status'] == 'OK') {
-              console.log("Successfully verified " + username);
-              res.json(retdict);
-            }
-            else {
-              res.send(403, retdict);
-            }
-          }).catch(function(err) {
-            console.log("Email not found error: " + username);
-            retdict = {"status": "error", "error": "Email not found"};
-            res.send(403, retdict);
-          })
-            }).catch(function(err) {
-              console.log("error: " + username);
-              retdict = {"status": "error", "error": "Error - verify"};
-              res.send(403, retdict);
-            })
+        var username = "", password = "";
 
+        // Find the user in the database, then make sure email matches the Key
+        //console.log("Connecting to DB...");
+        //console.log(retdict);
+
+        // Get user email and check it matches up with the key sent to that email
+
+        var users_collection = sodb.collection("users");
+        var verified_users_collection = sodb.collection("verified_users");
+
+        var user_result = await users_collection.findOne({email: email});
+
+        if (user_result == null) {
+            console.log("Null result");
+
+            retdict = {"status": "error", "error": "User not found with this key/email"};
+            //console.log(retdict);
+            //throw err;
         }
-        // User from users database now verified and added to verified_users Database
-        //console.log("InsertOne DB Connection closed");
+        else if (user_result.key != key) {
+            //console.log(result);
+            //console.log(result.key);
+            //console.log("Key does not match up");
+            retdict = {"status": "error", "error": "Email and key do not match up."};
+            //throw err;
+        }
+        else {
+          console.log(user_result.email);
+          username = user_result.username;
+          password = user_result.password;
+        }
+
+        // Since we have verified the user, add them to the verified users colelction so that they can log in
+        var verified_user = await verified_users_collection.insertOne({username:username, password:password, email: email, reputation: 1});
+        if (retdict['status'] == 'OK') {
+          console.log("Successfully verified " + username);
+          res.json(retdict);
+        }
+        else {
+          res.send(403, retdict);
+        }
+      }
+    }
+    catch (e) {
+
+    }
+  }
+
 })
 
 app.get('/login', (req, res) => res.sendfile(path.join(__dirname + '/stackoverflowclonelogin.html')))
