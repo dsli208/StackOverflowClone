@@ -7,3 +7,4 @@ User account registration with email verification, posting questions and answers
 - MongoDB
 - Cassandra
 - JWT for authentication
+- NGINX for load-balancing
